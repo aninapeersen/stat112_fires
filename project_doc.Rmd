@@ -15,13 +15,14 @@ Fires = read.csv("FW_Veg_Rem_Combined.csv")
 library(ggplot2)
 library(tidyverse)
 library(maps)
-library(ggmaps)
+library(ggmap)
 library(ggthemes)
 library(usdata)
 ```
 
 ```{r setup, include=FALSE}
-# Fires = read.csv("FW_Veg_Rem_Combined.csv")
+ggplot(Fires, aes(x = discovery_month)) +
+  geom_bar()
 ```
 
 please work
