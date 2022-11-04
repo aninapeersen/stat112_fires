@@ -9,9 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 Fires = read.csv("FW_Veg_Rem_Combined.csv")
-```
-
-```{r setup, include=FALSE}
 library(ggplot2)
 library(tidyverse)
 library(maps)
@@ -20,10 +17,11 @@ library(ggthemes)
 library(usdata)
 ```
 
-```{r setup, include=FALSE}
+```{r}
 ggplot(Fires, aes(x = discovery_month)) +
   geom_bar()
 ```
+
 
 please work
 
