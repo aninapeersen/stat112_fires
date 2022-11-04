@@ -1,6 +1,6 @@
 ---
 title: "project"
-author: "anina"
+author: "anina, margaret"
 date: '2022-11-04'
 output: html_document
 ---
@@ -9,6 +9,19 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 Fires = read.csv("FW_Veg_Rem_Combined.csv")
+```
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(maps)
+library(ggmaps)
+library(ggthemes)
+library(usdata)
+```
+
+```{r setup, include=FALSE}
+# Fires = read.csv("FW_Veg_Rem_Combined.csv")
 ```
 
 please work
