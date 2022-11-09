@@ -1,0 +1,56 @@
+---
+title: "one number story"
+author: "anina"
+date: '2022-11-09'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+Fires = read.csv("FW_Veg_Rem_Combined.csv")
+library(ggplot2)
+library(tidyverse)
+library(maps)
+library(ggmap)
+library(ggthemes)
+library(usdata)
+```
+
+```{r}
+Fires_Contained <- Fires %>%
+  mutate(discovery_month = fct_relevel(discovery_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'))) %>%
+  separate(putout_time, into = c("DaysToContainment"), sep = " ") %>%
+  filter(DaysToContainment >= 0)
+```
+
+```{r}
+ggplot(Fires_Contained, aes(x = as.numeric(DaysToContainment))) + 
+  geom_histogram() + 
+  xlim(0, 100) + 
+  ylim(0, 800) + 
+  labs(x = 'Days To Containment', y = 'Count') + 
+  facet_wrap(~ discovery_month) + 
+  theme_classic()
+```
+
+```{r}
+mean(as.numeric(Fires_Contained$DaysToContainment))
+```
+
+```{r}
+FiresByMonth <- Fires_Contained %>%
+  group_by(discovery_month) %>%
+  summarize(NumFires = n(), 
+            avgTimeToContainment = mean(as.numeric(DaysToContainment)))
+```
+
+
+
+
+
+
+
+
+
+
