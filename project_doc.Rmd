@@ -16,6 +16,7 @@ library(ggmap)
 library(ggthemes)
 library(usdata)
 library(lubridate)
+library(stringr)
 ```
 
 
@@ -24,14 +25,17 @@ library(lubridate)
 ```{r}
 FiresClean <- Fires %>%
   mutate(discovery_month = fct_relevel(discovery_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
-         disc_pre_month = fct_relevel(disc_pre_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'))) %>%
-  separate(putout_time, into = c("DaysToContainment"), sep = " ") %>%
+         disc_pre_month = fct_relevel(disc_pre_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
+         days_to_containment =  str_remove(putout_time, "\\ .*")) %>%
   mutate(fire_size_class = factor(fire_size_class), 
          stat_cause_descr = factor(stat_cause_descr), 
-         state = factor(state)) %>%
-  mutate(disc_clean_date = as_date(mdy(disc_clean_date)))
+         state = factor(state))
 
-# to change to dates: disc_clean_date, cont_clean_date, disc_date_final, cont_date_final, disc_date_pre
+FiresClean$disc_clean_date <- as_date(FiresClean$disc_clean_date, format = '%m/%d/%Y')
+FiresClean$cont_clean_date <- as_date(FiresClean$cont_clean_date, format = '%m/%d/%Y')
+FiresClean$disc_date_pre <- as_date(FiresClean$disc_date_pre, format = '%m/%d/%Y')
+FiresClean$disc_date_final <- as_date(FiresClean$disc_date_final, format = '%m/%d/%Y %h:%M')
+FiresClean$cont_date_final <- as_date(FiresClean$cont_date_final, format = '%m/%d/%Y %h:%M')
 ```
 
 
