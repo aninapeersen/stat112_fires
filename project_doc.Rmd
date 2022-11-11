@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 Fires = read.csv("FW_Veg_Rem_Combined.csv")
 library(ggplot2)
@@ -15,7 +15,26 @@ library(maps)
 library(ggmap)
 library(ggthemes)
 library(usdata)
+library(lubridate)
 ```
+
+
+## Data Cleaning
+
+```{r}
+FiresClean <- Fires %>%
+  mutate(discovery_month = fct_relevel(discovery_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
+         disc_pre_month = fct_relevel(disc_pre_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'))) %>%
+  separate(putout_time, into = c("DaysToContainment"), sep = " ") %>%
+  mutate(fire_size_class = factor(fire_size_class), 
+         stat_cause_descr = factor(stat_cause_descr), 
+         state = factor(state)) %>%
+  mutate(disc_clean_date = as_date(mdy(disc_clean_date)))
+
+# to change to dates: disc_clean_date, cont_clean_date, disc_date_final, cont_date_final, disc_date_pre
+```
+
+
 
 ```{r}
 ggplot(Fires, aes(x = discovery_month)) +
