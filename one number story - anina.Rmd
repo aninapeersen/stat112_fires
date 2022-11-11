@@ -42,7 +42,8 @@ mean(as.numeric(Fires_Contained$DaysToContainment))
 FiresByMonth <- Fires_Contained %>%
   group_by(discovery_month) %>%
   summarize(NumFires = n(), 
-            avgTimeToContainment = mean(as.numeric(DaysToContainment)))
+            avgTimeToContainment = mean(as.numeric(DaysToContainment)), 
+            avgSize = mean(fire_size))
 ```
 
 
