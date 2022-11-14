@@ -136,6 +136,8 @@ ggmap(Hawaii) +
 
 
 ```{r}
+# MOST COMMON CAUSE OF FIRE BY STATE
+# data wrangling
 FiresCleanState <- FiresClean %>% 
   group_by(state, causeCat) %>% 
   summarize(num_by_cause = n())
@@ -144,6 +146,23 @@ FiresCleanGroup <- FiresCleanState %>%
   group_by(state) %>% 
   filter(num_by_cause == max(num_by_cause))
 # need to deal with MA, DE
+
+FiresCleanGroup <- FiresCleanGroup %>%
+  ungroup() %>% 
+  filter(!state %in% c('DE', 'MA')) %>% 
+  add_row(state = "DE", 
+          causeCat = "Intentional Human Action, Unintentional Human Action, Other", 
+          num_by_cause = 3) %>%
+  add_row(state = "MA", 
+          causeCat = "Unintentional Human Action, Other", 
+          num_by_cause = 24)
+  
+# plot making
+plot_usmap(data = FiresCleanGroup, values = "causeCat", color = "black") +
+  scale_fill_manual(values = c("red","orange", "green", "blue", "purple"), 
+                    name = "Cause of Fire") +
+  theme(legend.position = "right") +
+  labs(title = "Most Common Cause of Wildfire by State")
 ```
 
 
