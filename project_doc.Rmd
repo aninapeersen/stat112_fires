@@ -18,7 +18,6 @@ library(usdata)
 library(lubridate)
 library(stringr)
 library(usmap)
-library(stamenmap)
 ```
 
 
@@ -136,5 +135,15 @@ ggmap(Hawaii) +
 ```
 
 
+```{r}
+FiresCleanState <- FiresClean %>% 
+  group_by(state, causeCat) %>% 
+  summarize(num_by_cause = n())
+
+FiresCleanGroup <- FiresCleanState %>% 
+  group_by(state) %>% 
+  filter(num_by_cause == max(num_by_cause))
+# need to deal with MA, DE
+```
 
 
