@@ -18,6 +18,7 @@ library(usdata)
 library(lubridate)
 library(stringr)
 library(usmap)
+library(stamenmap)
 ```
 
 
@@ -71,6 +72,13 @@ ggplot(FiresClean, aes(x = discovery_month, fill = causeCat)) +
   geom_bar(color = 'dimgray') + 
   labs(x = 'Month of Fire Discovery', y = 'Number of Fires', title = 'Number of Fires and Fire Cause by Month', fill = 'Fire Cause') +
   theme_classic()
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
+  geom_density(alpha = .5) + 
+  labs(x = 'Month of Fire Discovery', y = 'Number of Fires', title = 'Number of Fires and Fire Cause by Month', fill = 'Fire Cause') +
+  facet_wrap(~causeCat) + 
+  theme_classic() + 
+  theme(legend.position = 'none')
 
 ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
   geom_density(alpha = .5) + 
