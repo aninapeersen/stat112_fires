@@ -1,7 +1,7 @@
 ---
 title: "project"
 author: "anina, margaret"
-date: '2022-11-14'
+date: '2022-11-16'
 output: html_document
 ---
 
@@ -57,7 +57,6 @@ FiresClean$disc_date_pre <- as_date(FiresClean$disc_date_pre, format = '%m/%d/%Y
 FiresClean$disc_date_final <- as_date(FiresClean$disc_date_final, format = '%m/%d/%Y %h:%M')
 FiresClean$cont_date_final <- as_date(FiresClean$cont_date_final, format = '%m/%d/%Y %h:%M')
 ```
-
 
 ## Exploratory Visualizations
 
@@ -137,32 +136,94 @@ ggmap(Hawaii) +
 
 ```{r}
 # MOST COMMON CAUSE OF FIRE BY STATE
-# data wrangling
 FiresCleanState <- FiresClean %>% 
   group_by(state, causeCat) %>% 
   summarize(num_by_cause = n())
 
 FiresCleanGroup <- FiresCleanState %>% 
   group_by(state) %>% 
-  filter(num_by_cause == max(num_by_cause))
-# need to deal with MA, DE
+  filter(num_by_cause == max(num_by_cause)) # need to deal with MA, DE
 
 FiresCleanGroup <- FiresCleanGroup %>%
   ungroup() %>% 
-  filter(!state %in% c('DE', 'MA')) %>% 
-  add_row(state = "DE", 
+  filter(!state %in% c('DE', 'MA')) %>% # takes out DE and MA
+  add_row(state = "DE", # re-adds DE
           causeCat = "Intentional Human Action, Unintentional Human Action, Other", 
           num_by_cause = 3) %>%
-  add_row(state = "MA", 
+  add_row(state = "MA", # re-adds MA
           causeCat = "Unintentional Human Action, Other", 
-          num_by_cause = 24)
+          num_by_cause = 24) 
   
-# plot making
 plot_usmap(data = FiresCleanGroup, values = "causeCat", color = "black") +
-  scale_fill_manual(values = c("red","orange", "green", "blue", "purple"), 
-                    name = "Cause of Fire") +
+  scale_fill_manual(values = c("#1b6c6b","green", "#1ccbd1", "#bcdfc6", "#e8f7eb"),
+                    # https://huemint.com/gradient-5/ #00a7a0
+                    breaks = c("Natural Causes", 
+                               "Other", 
+                               "Intentional Human Action", 
+                               "Unintentional Human Action, Other",
+                               "Intentional Human Action, Unintentional Human Action, Other"),
+                    labels = c("Natural Causes: lightning, debris burning", 
+                               "Other: miscellaneous, missing/undefined", 
+                               "Intentional Human Action: arson", 
+                               "Tie: Unintentional Human Action, Other (MA)",
+                               "Tie: Intentional Human Action, Unintentional Human Action, Other (DE)"),
+                    name = "Cause of Wildfire") +
   theme(legend.position = "right") +
-  labs(title = "Most Common Cause of Wildfire by State")
+  labs(title = "Most Common Cause of Wildfire by State (1992-2015)", 
+       caption = "Data from federal, state, and local fire organizations in the US. \n Graphic made by Margaret Shepherd.")
+```
+
+```{r}
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = vegCat)) +
+  geom_density(alpha = .5) + 
+  labs(x = 'Month of Fire Discovery', y = 'Number of Fires', title = 'Number of Fires and Surrounding Vegetation by Month', fill = 'Vegetation') +
+  facet_wrap(~vegCat) + 
+  theme_classic() + 
+  theme(legend.position = 'none')
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) +
+  geom_density(alpha = .5) + 
+  labs(x = 'Month of Fire Discovery', y = 'Number of Fires', title = 'Number of Fires and Fire Size Class by Month', fill = 'Fire Size Class') +
+  facet_wrap(~fire_size_class) + 
+  theme_classic() + 
+  theme(legend.position = 'none')
+```
+
+```{r}
+FiresCleanVeg <- FiresClean %>% 
+  group_by(vegCat) %>% 
+  summarize(num = n())
+
+ggplot(FiresCleanVeg, aes(x = vegCat)) +
+  geom_col(aes(y = num)) +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Fires',
+       title = 'Number of Fires by Surrounding Vegetation')
+```
+
+```{r}
+FiresCleanCause <- FiresClean %>% 
+  group_by(causeCat) %>% 
+  summarize(num = n())
+
+ggplot(FiresCleanCause, aes(x = causeCat)) +
+  geom_col(aes(y = num)) +
+  labs(x = 'Fire Cause',
+       y = 'Number of Fires',
+       title = 'Number of Fires by Fire Cause (grouped)')
+```
+
+```{r}
+FiresCause <- FiresClean %>% 
+  group_by(stat_cause_descr) %>% 
+  summarize(num = n())
+
+ggplot(FiresCause, aes(x = stat_cause_descr)) +
+  geom_col(aes(y = num)) +
+  labs(x = 'Fire Cause',
+       y = 'Number of Fires',
+       title = 'Number of Fires by Fire Cause (ungrouped)') +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
 ```
 
 
