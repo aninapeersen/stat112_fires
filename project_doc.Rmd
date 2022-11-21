@@ -20,7 +20,6 @@ library(stringr)
 library(usmap)
 ```
 
-
 ## Data Cleaning
 
 ```{r}
