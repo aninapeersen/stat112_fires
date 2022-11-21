@@ -1,7 +1,7 @@
 ---
 title: "project"
 author: "anina, margaret"
-date: '2022-11-18'
+date: '2022-11-21'
 output: html_document
 ---
 
@@ -265,7 +265,7 @@ plot_usmap(data = FiresCleanGroup, values = "causeCat", color = "black") +
                     name = "Cause of Wildfire") +
   theme(legend.position = "right") +
   labs(title = "Most Common Cause of Wildfire by State (1992-2015)", 
-       caption = "Data from federal, state, and local fire organizations in the US. \n Graphic made by Margaret Shepherd.")
+       caption = "Data from federal, state, and local fire organizations in the US. \n Graphic made by Margaret Shepherd. \n Unintentional Human Action consists of campfires, children, equipment use, \n fireworks, and smoking.")
 ```
 
 ```{r}
@@ -319,6 +319,17 @@ ggplot(FiresCause, aes(x = stat_cause_descr)) +
        y = 'Number of Fires',
        title = 'Number of Fires by Fire Cause (ungrouped)') +
   theme(axis.text.x = element_text(angle = 45, hjust=1))
+```
+
+```{r}
+
+Fires_sub <- Fires %>% 
+  filter(weather_file != 'File Not Found') %>% 
+  filter(Temp_pre_7 != 0) %>% 
+  mutate(summer_month = discovery_month %in% c('Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep')) 
+  # filter(Temp_pre_30 != 0 | Temp_pre_15 != 0 | Temp_pre_7 != 0 | Temp_cont != 0)
+
+(avgtemp30 = mean(FiresClean$Temp_pre_30))
 ```
 
 
