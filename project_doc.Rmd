@@ -322,12 +322,10 @@ ggplot(FiresCause, aes(x = stat_cause_descr)) +
 ```
 
 ```{r}
-
-Fires_sub <- Fires %>% 
+Fires_sub <- FiresClean %>% 
   filter(weather_file != 'File Not Found') %>% 
-  filter(Temp_pre_7 != 0) %>% 
-  mutate(summer_month = discovery_month %in% c('Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep')) 
-  # filter(Temp_pre_30 != 0 | Temp_pre_15 != 0 | Temp_pre_7 != 0 | Temp_cont != 0)
+  filter(Temp_cont != 0) %>% 
+  filter(Temp_pre_30 != 0 | Temp_pre_15 != 0 | Temp_pre_7 != 0 | Temp_cont != 0) # keeps row if all four temps are nonzero
 
 (avgtemp30 = mean(FiresClean$Temp_pre_30))
 ```
