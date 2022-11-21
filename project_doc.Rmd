@@ -289,11 +289,19 @@ FiresCleanVeg <- FiresClean %>%
   group_by(vegCat) %>% 
   summarize(num = n())
 
-ggplot(FiresCleanVeg, aes(x = vegCat)) +
-  geom_col(aes(y = num)) +
+ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
+  geom_bar(position = 'stack') +
   labs(x = 'Surrounding Vegetation',
        y = 'Number of Fires',
-       title = 'Number of Fires by Surrounding Vegetation')
+       title = 'Number of Fires by Surrounding Vegetation and Fire Size Classification') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
+  geom_bar(position = 'fill') +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Fires',
+       title = 'Proportion of Fires Size Classification by Surrounding Vegetation') + 
+  theme_minimal()
 ```
 
 ```{r}
