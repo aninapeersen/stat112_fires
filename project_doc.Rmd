@@ -322,12 +322,91 @@ ggplot(FiresCause, aes(x = stat_cause_descr)) +
 ```
 
 ```{r}
-Fires_sub <- FiresClean %>% 
+Fires_temp <- FiresClean %>% 
   filter(weather_file != 'File Not Found') %>% 
-  filter(Temp_cont != 0) %>% 
-  filter(Temp_pre_30 != 0 | Temp_pre_15 != 0 | Temp_pre_7 != 0 | Temp_cont != 0) # keeps row if all four temps are nonzero
+  filter(Temp_pre_30 != 0) %>% 
+  filter(Temp_pre_15 != 0) %>%
+  filter(Temp_pre_7 != 0) %>%
+  filter(Temp_cont != 0) 
+  # filter(Temp_pre_30 != 0 | Temp_pre_15 != 0 | Temp_pre_7 != 0 | Temp_cont != 0) # keeps row if all four temps are nonzero
 
-(avgtemp30 = mean(FiresClean$Temp_pre_30))
+Fires_wind <- FiresClean %>% 
+  filter(weather_file != 'File Not Found') %>%
+  filter(Wind_pre_30 != 0) %>% 
+  filter(Wind_pre_15 != 0) %>%
+  filter(Wind_pre_7 != 0) %>%
+  filter(Wind_cont != 0)
+  
+Fires_hum <- FiresClean %>% 
+  filter(weather_file != 'File Not Found') %>%
+  filter(Hum_pre_30 != 0) %>% 
+  filter(Hum_pre_15 != 0) %>%
+  filter(Hum_pre_7 != 0) %>%
+  filter(Hum_cont != 0)
+
+Fires_prec <- FiresClean %>% 
+  filter(weather_file != 'File Not Found') %>%
+  filter(Prec_pre_30 != 0) %>% 
+  filter(Prec_pre_15 != 0) %>%
+  filter(Prec_pre_7 != 0) %>%
+  filter(Prec_cont != 0)
+
+(avgtemp30 = mean(Fires_temp$Temp_pre_30))
+(avgtemp15 = mean(Fires_temp$Temp_pre_15))
+(avgtemp7 = mean(Fires_temp$Temp_pre_7))
+(avgtempcont = mean(Fires_temp$Temp_cont))
+
+(avgwind30 = mean(Fires_wind$Wind_pre_30))
+(avgwind15 = mean(Fires_wind$Wind_pre_15))
+(avgwind7 = mean(Fires_wind$Wind_pre_7))
+(avgwindcont = mean(Fires_wind$Wind_cont))
+
+(avghum30 = mean(Fires_hum$Hum_pre_30))
+(avghum15 = mean(Fires_hum$Hum_pre_15))
+(avghum7 = mean(Fires_hum$Hum_pre_7))
+(avghumcont = mean(Fires_hum$Hum_cont))
+
+(avgprec30 = mean(Fires_prec$Prec_pre_30))
+(avgprec15 = mean(Fires_prec$Prec_pre_15))
+(avgprec7 = mean(Fires_prec$Prec_pre_7))
+(avgpreccont = mean(Fires_prec$Prec_cont))
+
+days_before <- c(30, 15, 7, 0)
+temp <- c(avgtemp30, avgtemp15, avgtemp7, avgtempcont)
+wind <- c(avgwind30, avgwind15, avgwind7, avgwindcont)
+hum <- c(avghum30, avghum15, avghum7, avghumcont)
+prec <- c(avgprec30, avgprec15, avgprec7, avgpreccont)
+avg_weather <- data.frame(days_before, temp, wind, hum, prec)
+```
+
+```{r}
+ggplot(data = avg_weather, aes(x = days_before, y = temp)) +
+  geom_point() +
+  xlim(30, 0) +
+  labs(x = 'Number of Days Before a Wildfire',
+       y = 'Average Temperature (C) at Wildfire Location',
+       title = 'Average Temperature Before a Wildfire \n Wildfires in the US, 1992-2015')
+
+ggplot(data = avg_weather, aes(x = days_before, y = wind)) +
+  geom_point() +
+  xlim(30, 0) +
+  labs(x = 'Number of Days Before a Wildfire',
+       y = 'Average Wind Speed (m/s) at Wildfire Location',
+       title = 'Average Wind Speed Before a Wildfire \n Wildfires in the US, 1992-2015')
+
+ggplot(data = avg_weather, aes(x = days_before, y = hum)) +
+  geom_point() +
+  xlim(30, 0) +
+  labs(x = 'Number of Days Before a Wildfire',
+       y = 'Average Humidity (%) at Wildfire Location',
+       title = 'Average Humidity Before a Wildfire \n Wildfires in the US, 1992-2015')
+
+ggplot(data = avg_weather, aes(x = days_before, y = prec)) +
+  geom_point() +
+  xlim(30, 0) +
+  labs(x = 'Number of Days Before a Wildfire',
+       y = 'Average Precipitation (mm) at Wildfire Location',
+       title = 'Average Precipitation Before a Wildfire \n Wildfires in the US, 1992-2015')
 ```
 
 
