@@ -70,20 +70,6 @@ ggplot(FiresClean, aes(x = discovery_month, fill = causeCat)) +
   geom_bar(color = 'dimgray') + 
   labs(x = 'Month of Fire Discovery', y = 'Number of Fires', title = 'Number of Fires and Fire Cause by Month', fill = 'Fire Cause') +
   theme_classic()
-
-ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
-  geom_density(alpha = .5) + 
-  labs(x = 'Month of Fire Discovery', y = 'Number of Fires', title = 'Number of Fires and Fire Cause by Month', fill = 'Fire Cause') +
-  facet_wrap(~causeCat) + 
-  theme_classic() + 
-  theme(legend.position = 'none')
-
-ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
-  geom_density(alpha = .5) + 
-  facet_wrap(~ causeCat) + 
-  labs(x = 'Date of Fire Discovery', y = 'Density of Fires', title = 'Density of Fire Cause Over Time', fill = 'Fire Cause') +
-  theme_classic() + 
-  theme(legend.position = 'none') 
 ```
 
 ```{r}
@@ -337,5 +323,107 @@ Fires_sub <- FiresClean %>%
 
 (avgtemp30 = mean(FiresClean$Temp_pre_30))
 ```
+
+# playing around with size and cause and remoteness over time
+
+size over time (1992-2015)
+
+they seem to spike approximatley evry 5 years for all fire size classes
+
+```{r}
+ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
+  geom_density(alpha = .5, color = 'white') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
+  geom_density(alpha = .5) + 
+  facet_wrap(~ fire_size_class) + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = disc_clean_date, y = fire_size)) + 
+  geom_point() + 
+  theme_minimal()
+```
+
+size aggregated over day of the year
+
+smaller fires (B, C, D) spike in the spring, medium fires (E) have dual spikes in the spring and late summer, larger fires (F, G) spike in the late summer
+
+```{r}
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) + 
+  geom_density(alpha = .5, color = 'white') + 
+  scale_x_continuous(breaks = c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335), labels = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec')) +
+  labs(x = 'Date of Fire Discovery', fill = 'Size Classification') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) + 
+  geom_density(alpha = .5) + 
+  facet_wrap(~ fire_size_class) + 
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  labs(x = 'Date of Fire Discovery') + 
+  theme_minimal() + 
+  theme(legend.position = 'none')
+
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), y = fire_size)) + 
+  geom_point() + 
+  scale_x_continuous(breaks = c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335), labels = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec')) +
+  labs(x = 'Date of Fire Discovery') + 
+  theme_minimal()
+```
+
+by cause over time
+
+```{r}
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
+  geom_density(alpha = .4, color = 'white') + 
+  labs(x = 'Date of Fire Discovery', fill = 'Fire Cause') +
+  scale_x_continuous(breaks = c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335), labels = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec')) +
+  theme_minimal() 
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
+  geom_density(alpha = .7) + 
+  labs(x = 'Date of Fire Discovery') +
+  facet_wrap(~ causeCat) + 
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  theme_minimal() + 
+  theme(legend.position = 'none')
+
+ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
+  geom_density(alpha = .5) + 
+  facet_wrap(~ causeCat) + 
+  labs(x = 'Date of Fire Discovery', y = 'Density of Fires', title = 'Density of Fire Cause Over Time', fill = 'Fire Cause') +
+  theme_minimal() + 
+  theme(legend.position = 'none') 
+```
+
+remoteness over time
+
+```{r}
+ggplot(FiresClean, aes(x = disc_clean_date, y = remoteness)) + 
+  geom_point() + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), y = remoteness)) + 
+  geom_point() + 
+  scale_x_continuous(breaks = c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335), labels = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec')) +
+  labs(x = 'Date of Fire Discovery') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), y = remoteness)) + 
+  geom_smooth() + 
+  facet_wrap(~ causeCat) + 
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  labs(x = 'Date of Fire Discovery') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), y = remoteness)) + 
+  geom_smooth() + 
+  facet_wrap(~ fire_size_class) + 
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  labs(x = 'Date of Fire Discovery') + 
+  theme_minimal()
+```
+
 
 
