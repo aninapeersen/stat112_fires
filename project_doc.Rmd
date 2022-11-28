@@ -419,6 +419,7 @@ ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) +
 ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ fire_size_class) + 
+  scale_fill_manual(values = c('orange', 'darkorange', 'darkorange2', 'orangered', 'red', 'brown')) + 
   labs(x = 'Date of Fire Discovery', y = 'Comparative Density') +
   theme_minimal() + 
   theme(legend.position = 'none')
@@ -443,11 +444,11 @@ ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) +
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ fire_size_class) + 
+  scale_fill_manual(values = c('orange', 'darkorange', 'darkorange2', 'orangered', 'red', 'brown')) + 
   scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
   labs(x = 'Date of Fire Discovery', y = 'Comparative Density') + 
   theme_minimal() + 
   theme(legend.position = 'none')
-
 
 ggplot(FiresClean, aes(x = yday(disc_clean_date), y = fire_size)) + 
   geom_point() + 
