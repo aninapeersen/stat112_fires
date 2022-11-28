@@ -464,6 +464,35 @@ ggplot(FiresClean, aes(x = yday(disc_clean_date), y = fire_size)) +
   theme_minimal()
 ```
 
+some more time things i want to try
+
+```{r}
+ggplot(FiresClean, aes(x = year(disc_clean_date), fill = causeCat)) +
+  geom_bar(position = 'stack') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) +
+  geom_histogram(position = 'stack') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = year(disc_clean_date), fill = causeCat)) +
+  geom_bar(position = 'fill') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = year(disc_clean_date), fill = fire_size_class)) +
+  geom_bar(position = 'stack') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) +
+  geom_histogram(position = 'stack') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = year(disc_clean_date), fill = fire_size_class)) +
+  geom_bar(position = 'fill') + 
+  theme_minimal()
+```
+
+
 ### by cause over time
 
 ```{r}
