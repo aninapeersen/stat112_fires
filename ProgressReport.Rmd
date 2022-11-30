@@ -5,6 +5,11 @@ date: 'December 5, 2022'
 output: html_document
 ---
 
+<style>
+body {
+text-align: justify}
+</style> 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
