@@ -137,9 +137,10 @@ ggmap(continentalUS) +
   geom_point(
     data = FiresClean,
     aes(x = longitude, y = latitude, color = fire_mag),
-    alpha = .2,
-    size = 0.2
+    alpha = .2
   ) +
+  scale_size_manual(values = c("B" = 0.1, "C" = 0.2, "D" = 0.3, "E" = 0.4, "F" = 0.5, "G" = 0.6)) +
+  # not actually sure this works, also need to add legend
   theme_map()
 
 ggmap(Alaska) +
