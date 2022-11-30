@@ -255,6 +255,22 @@ plot_usmap(data = FiresCleanGroup, values = "causeCat", color = "black") +
 
 #### Bar Plots
 
+```{r}
+# large fires
+LargeFires_state <- FiresClean %>%
+  filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G") %>% 
+  group_by(state) %>% 
+  summarize(number = n()) %>% 
+  arrange(desc(number)) %>% 
+  head(10)
+
+ggplot(LargeFires_state, aes(x = reorder(state, desc(number)), y = number)) +
+  geom_col() +
+  labs(x = 'State',
+       y = 'Number of Large (300+ acres) Wildfires',
+       title = 'Top 10 US States with the Most Large Wildfires from 1992-2015')
+```
+
 
 ### Temporal Analysis
 
