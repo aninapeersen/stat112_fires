@@ -83,6 +83,176 @@ PuertoRico <- get_stamenmap(
 
 #### Maps
 
+```{r, echo = FALSE}
+# maps of fire locations
+ggmap(continentalUS) + 
+  geom_point(
+    data = FiresClean,
+    aes(x = longitude, y = latitude),
+    alpha = .4,
+    size = 0.2
+  ) +
+  theme_map()
+
+ggmap(Alaska) + 
+  geom_point(
+    data = FiresClean,
+    aes(x = longitude, y = latitude),
+    alpha = .8,
+    size = 0.7
+  ) +
+  theme_map()
+
+ggmap(Hawaii) + 
+  geom_point(
+    data = FiresClean,
+    aes(x = longitude, y = latitude),
+    alpha = .8,
+    size = 1
+  ) +
+  theme_map()
+
+ggmap(PuertoRico) + 
+  geom_point(
+    data = FiresClean,
+    aes(x = longitude, y = latitude),
+    alpha = .8,
+    size = 1
+  ) +
+  theme_map()
+```
+
+
+```{r, echo = FALSE}
+# maps of fire locations and fire magnitude
+ggmap(continentalUS) + 
+  geom_point(
+    data = FiresClean,
+    aes(x = longitude, y = latitude, color = fire_mag),
+    alpha = .2,
+    size = 0.2
+  ) +
+  theme_map()
+
+ggmap(Alaska) +
+  geom_point(
+    data = FiresClean,
+    aes(x = longitude, y = latitude, color = fire_mag),
+    alpha = .8,
+    size = 0.7
+  ) +
+  theme_map()
+
+ggmap(Hawaii) +
+  geom_point(
+    data = FiresClean,
+    aes(x = longitude, y = latitude, color = fire_mag),
+    alpha = .8,
+    size = 1
+  ) +
+  theme_map()
+
+ggmap(PuertoRico) +
+  geom_point(
+    data = FiresClean,
+    aes(x = longitude, y = latitude, color = fire_mag),
+    alpha = .8,
+    size = 1
+  ) +
+  theme_map()
+```
+
+```{r, echo = FALSE}
+# maps of fire locations and fire class size
+FiresClean_class <- FiresClean %>% 
+  mutate(fire_size_class = fct_recode(fire_size_class, "1/4 acre to 10 acres" = "B", 
+                            "10 acres to 100 acres" = "C",
+                            "100 acres to 300 acres" = "D",
+                            "300 acres to 1000 acres" = "E",
+                            "1000 acres to 5000 acres" = "F",
+                            "5000+ acres" = "G"))
+  
+ggmap(continentalUS) + 
+  geom_point(
+    data = FiresClean_class,
+    aes(x = longitude, y = latitude, color = fire_size_class),
+    alpha = .4,
+    size = 0.2
+  ) +
+  theme_map() +
+  guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8))) +
+  theme(legend.position = "right")
+
+ggmap(Alaska) +
+  geom_point(
+    data = FiresClean_class,
+    aes(x = longitude, y = latitude, color = fire_size_class),
+    alpha = .8,
+    size = 0.7
+  ) +
+  theme_map() +
+  guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8)))
+
+ggmap(Hawaii) +
+  geom_point(
+    data = FiresClean_class,
+    aes(x = longitude, y = latitude, color = fire_size_class),
+    alpha = .8,
+    size = 1
+  ) +
+  theme_map() +
+  guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8)))
+
+ggmap(PuertoRico) +
+  geom_point(
+    data = FiresClean_class,
+    aes(x = longitude, y = latitude, color = fire_size_class),
+    alpha = .8,
+    size = 1
+  ) +
+  theme_map() +
+  guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8)))
+```
+
+```{r, echo = FALSE}
+# MOST COMMON CAUSE OF FIRE BY STATE
+FiresCleanState <- FiresClean %>% 
+  group_by(state, causeCat) %>% 
+  summarize(num_by_cause = n())
+
+FiresCleanGroup <- FiresCleanState %>% 
+  group_by(state) %>% 
+  filter(num_by_cause == max(num_by_cause)) # need to deal with MA, DE
+
+FiresCleanGroup <- FiresCleanGroup %>%
+  ungroup() %>% 
+  filter(!state %in% c('DE', 'MA')) %>% # takes out DE and MA
+  add_row(state = "DE", # re-adds DE
+          causeCat = "Intentional Human Action, Unintentional Human Action, Other", 
+          num_by_cause = 3) %>%
+  add_row(state = "MA", # re-adds MA
+          causeCat = "Unintentional Human Action, Other", 
+          num_by_cause = 24) 
+  
+plot_usmap(data = FiresCleanGroup, values = "causeCat", color = "black") +
+  scale_fill_manual(values = c("#1b6c6b","green", "#1ccbd1", "#bcdfc6", "#e8f7eb"),
+                    # https://huemint.com/gradient-5/ #00a7a0
+                    breaks = c("Natural Causes", 
+                               "Other", 
+                               "Intentional Human Action", 
+                               "Unintentional Human Action, Other",
+                               "Intentional Human Action, Unintentional Human Action, Other"),
+                    labels = c("Natural Causes: lightning, debris burning", 
+                               "Other: miscellaneous, missing/undefined", 
+                               "Intentional Human Action: arson", 
+                               "Tie: Unintentional Human Action, Other (MA)",
+                               "Tie: Intentional Human Action, Unintentional Human Action, Other (DE)"),
+                    name = "Cause of Wildfire") +
+  theme(legend.position = "right") +
+  labs(title = "Most Common Cause of Wildfire by State (1992-2015)", 
+       caption = "Data from federal, state, and local fire organizations in the US. \n Graphic made by Margaret Shepherd. \n Unintentional Human Action consists of campfires, children, equipment use, \n fireworks, and smoking.")
+```
+
 #### Bar Plots
 
 
