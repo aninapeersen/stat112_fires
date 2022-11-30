@@ -236,6 +236,8 @@ ggmap(PuertoRico) +
   guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8)))
 ```
 
+On a state-by-state basis, most wildfires in the US are started by natural causes.
+
 ```{r, echo = FALSE}
 # MOST COMMON CAUSE OF FIRE BY STATE
 FiresCleanState <- FiresClean %>% 
@@ -275,9 +277,11 @@ plot_usmap(data = FiresCleanGroup, values = "causeCat", color = "black") +
        caption = "Data from federal, state, and local fire organizations in the US. \n Graphic made by Margaret Shepherd. \n Unintentional Human Action consists of campfires, children, equipment use, \n fireworks, and smoking.")
 ```
 
+For most states in the US, the most common cause of wildfires is natural causes. A smaller group of states has “other” as the leading cause, and four states list arson as the most common cause of wildfires. It seems that in most places, we can only control our preparation for and response to wildfires, not whether or not they occur in the first place, but this graph may pinpoint states where wildfire records are unclear or underutilized, and states where the most effective firefighting strategy is tied to crime reduction.
+
 #### Bar Plots
 
-```{r}
+```{r, echo = FALSE}
 # large fires
 LargeFires_state <- FiresClean %>%
   filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G") %>% 
@@ -356,6 +360,7 @@ prec <- c(avgprec30, avgprec15, avgprec7, avgpreccont)
 avg_weather <- data.frame(days_before, temp, wind, hum, prec)
 ```
 
+Decreasing precipitation in the 30 days preceding a wildfire is the most predictive weather phenomenon.
 
 ```{r, echo = FALSE}
 ggplot(data = avg_weather, aes(x = days_before)) +
@@ -376,6 +381,7 @@ ggplot(data = avg_weather, aes(x = days_before)) +
   theme_minimal()
 ```
 
+This plot was made by averaging the temperature, wind speed, humidity, and precipitation at certain intervals leading up to a wildfire and normalizing the values by the largest value in each respective dataset, in order to better visualize the average change in each. Precipitation by far shows the largest change leading up a fire, making it the most potent predictor. Humidity and wind speed also decrease leading up to a fire while temperature increases. An observed combination of these factors can help increase awareness of and preparation for high fire risk.
 
 #### By Fire Size Class
 
