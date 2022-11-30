@@ -1,7 +1,7 @@
 ---
 title: "project"
 author: "anina, margaret"
-date: '2022-11-21'
+date: '2022-11-28'
 output: html_document
 ---
 
@@ -185,20 +185,28 @@ ggmap(PuertoRico) +
 ```
 
 ```{r}
+FiresClean_class <- FiresClean %>% 
+  mutate(fire_size_class = fct_recode(fire_size_class, "1/4 acre to 10 acres" = "B", 
+                            "10 acres to 100 acres" = "C",
+                            "100 acres to 300 acres" = "D",
+                            "300 acres to 1000 acres" = "E",
+                            "1000 acres to 5000 acres" = "F",
+                            "5000+ acres" = "G"))
+  
 ggmap(continentalUS) + 
   geom_point(
-    data = FiresClean,
+    data = FiresClean_class,
     aes(x = longitude, y = latitude, color = fire_size_class),
     alpha = .4,
     size = 0.2
   ) +
   theme_map() +
-  guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8)))
-# want to change legend labels to definitions for fire size class
+  guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8))) +
+  theme(legend.position = "right")
 
 ggmap(Alaska) +
   geom_point(
-    data = FiresClean,
+    data = FiresClean_class,
     aes(x = longitude, y = latitude, color = fire_size_class),
     alpha = .8,
     size = 0.7
@@ -208,7 +216,7 @@ ggmap(Alaska) +
 
 ggmap(Hawaii) +
   geom_point(
-    data = FiresClean,
+    data = FiresClean_class,
     aes(x = longitude, y = latitude, color = fire_size_class),
     alpha = .8,
     size = 1
@@ -218,7 +226,7 @@ ggmap(Hawaii) +
 
 ggmap(PuertoRico) +
   geom_point(
-    data = FiresClean,
+    data = FiresClean_class,
     aes(x = longitude, y = latitude, color = fire_size_class),
     alpha = .8,
     size = 1
@@ -386,34 +394,116 @@ prec <- c(avgprec30, avgprec15, avgprec7, avgpreccont)
 avg_weather <- data.frame(days_before, temp, wind, hum, prec)
 ```
 
-```{r}
+```{r, fig.width = 5, fig.height = 4}
 ggplot(data = avg_weather, aes(x = days_before, y = temp)) +
-  geom_point() +
+  geom_point(size = 4) +
   xlim(30, 0) +
   labs(x = 'Number of Days Before a Wildfire',
        y = 'Average Temperature (C) at Wildfire Location',
        title = 'Average Temperature Before a Wildfire \n Wildfires in the US, 1992-2015')
 
 ggplot(data = avg_weather, aes(x = days_before, y = wind)) +
-  geom_point() +
+  geom_point(size = 4) +
   xlim(30, 0) +
   labs(x = 'Number of Days Before a Wildfire',
        y = 'Average Wind Speed (m/s) at Wildfire Location',
        title = 'Average Wind Speed Before a Wildfire \n Wildfires in the US, 1992-2015')
 
 ggplot(data = avg_weather, aes(x = days_before, y = hum)) +
-  geom_point() +
+  geom_point(size = 4) +
   xlim(30, 0) +
   labs(x = 'Number of Days Before a Wildfire',
        y = 'Average Humidity (%) at Wildfire Location',
        title = 'Average Humidity Before a Wildfire \n Wildfires in the US, 1992-2015')
 
 ggplot(data = avg_weather, aes(x = days_before, y = prec)) +
-  geom_point() +
+  geom_point(size = 4) +
   xlim(30, 0) +
   labs(x = 'Number of Days Before a Wildfire',
        y = 'Average Precipitation (mm) at Wildfire Location',
        title = 'Average Precipitation Before a Wildfire \n Wildfires in the US, 1992-2015')
+```
+
+```{r}
+ggplot(data = avg_weather, aes(x = days_before)) +
+  geom_point(aes(y = temp/max(temp), color = "Temperature")) +
+  geom_point(aes(y = wind/max(wind), color = "Wind")) +
+  geom_point(aes(y = hum/max(hum), color = "Humidity")) +
+  geom_point(aes(y = prec/max(prec), color = "Precipitation")) +
+  geom_line(aes(y = temp/max(temp), color = "Temperature")) +
+  geom_line(aes(y = wind/max(wind), color = "Wind")) +
+  geom_line(aes(y = hum/max(hum), color = "Humidity")) +
+  geom_line(aes(y = prec/max(prec), color = "Precipitation")) + 
+  xlim(30, 0) +
+  labs(x = 'Number of Days Before a Wildfire',
+       y = 'Normalized Average Weather at Wildfire Location',
+       title = 'Average Temperature, Wind Speed, Humidity, and Precipitation Before a Wildfire \n Wildfires in the US, 1992-2015',
+       color = "Weather") +
+  scale_color_manual(values=c("purple", "blue", "red", "orange"))
+```
+
+
+```{r}
+### EDA for large fires ###
+
+# ggplot(FiresClean, aes(x = fire_mag)) +
+#   geom_density()
+# ggplot(FiresClean, aes(x = fire_size_class)) +
+#   geom_bar()
+
+LargeFires_state <- FiresClean %>%
+  filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G") %>% 
+  group_by(state) %>% 
+  summarize(number = n()) %>% 
+  arrange(desc(number)) %>% 
+  head(10)
+
+# ggplot(LargeFires, aes(x = fire_size_class)) +
+#   geom_bar()
+
+ggplot(LargeFires_state, aes(x = reorder(state, desc(number)), y = number)) +
+  geom_col() +
+  labs(x = 'State',
+       y = 'Number of Large (300+ acres) Wildfires',
+       title = 'Top 10 US States with the Most Large Wildfires from 1992-2015')
+```
+
+```{r}
+### EDA for large fires ###
+LargeFires_CA <- FiresClean %>%
+  filter(state == "CA") %>% 
+  filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G")
+
+LargeFires_CA_veg <- LargeFires_CA %>% 
+  group_by(vegCat) %>% 
+  summarize(number = n())
+
+LargeFires_CA_cause <- LargeFires_CA %>% 
+  group_by(causeCat) %>% 
+  summarize(number = n())
+
+LargeFires_CA_cause1 <- LargeFires_CA %>% 
+  group_by(stat_cause_descr) %>% 
+  summarize(number = n())
+
+ggplot(LargeFires_CA_veg, aes(x = vegCat)) +
+  geom_col(aes(y = number)) +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Wildfires',
+       title = 'Number of Large Wildfires in CA by Surrounding Vegetation')
+
+ggplot(LargeFires_CA_cause, aes(x = causeCat)) +
+  geom_col(aes(y = number)) +
+  labs(x = 'Fire Cause',
+       y = 'Number of Wildfires',
+       title = 'Number of Large Wildfires in CA by Fire Cause (grouped)')
+
+ggplot(LargeFires_CA_cause1, aes(x = stat_cause_descr)) +
+  geom_col(aes(y = number)) +
+  labs(x = 'Fire Cause',
+       y = 'Number of Wildfires',
+       title = 'Number of Large Wildfires in CA by Fire Cause (ungrouped)') +
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
 ```
 
 
