@@ -426,7 +426,8 @@ ggplot(data = avg_weather, aes(x = days_before)) +
        y = 'Normalized Average Weather at Wildfire Location',
        title = 'Average Temperature, Wind Speed, Humidity, and Precipitation Before a Wildfire \n Wildfires in the US, 1992-2015',
        color = "Weather") +
-  scale_color_manual(values=c("purple", "blue", "red", "orange"))
+  scale_color_manual(values=c("purple", "blue", "red", "orange")) + 
+  theme_minimal()
 ```
 
 
