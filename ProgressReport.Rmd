@@ -1,0 +1,121 @@
+---
+title: "Progress Report"
+author: "Margaret Shepherd, Anina Peersen"
+date: 'December 5, 2022'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+Fires = read.csv("FW_Veg_Rem_Combined.csv")
+library(ggplot2)
+library(tidyverse)
+library(maps)
+library(ggmap)
+library(ggthemes)
+library(usdata)
+library(lubridate)
+library(stringr)
+library(usmap)
+```
+
+```{r, echo = FALSE}
+FiresClean <- Fires %>%
+  mutate(discovery_month = fct_relevel(discovery_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
+         disc_pre_month = fct_relevel(disc_pre_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
+         days_to_containment =  str_remove(putout_time, "\\ .*")) %>%
+  mutate(fire_size_class = factor(fire_size_class), 
+         stat_cause_descr = factor(stat_cause_descr), 
+         state = factor(state), 
+         vegCat = case_when(Vegetation %in% c(1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22) ~ 'forest', 
+                            Vegetation %in% c(24, 25, 26, 27) ~ 'agricultural', 
+                            Vegetation == 28 ~ 'urban', 
+                            Vegetation == 23 ~ 'water', 
+                            Vegetation == 13 ~ 'tundra', 
+                            Vegetation %in% c(14, 15) ~ 'desert', 
+                            Vegetation %in% c(9, 10) ~ 'grassland',
+                            Vegetation %in% c(11, 12) ~ 'shrubland', 
+                            Vegetation == 8 ~ 'savanna', 
+                            Vegetation == 0 ~ 'unknown'), 
+         forestType = case_when(Vegetation %in% c(2, 5, 7, 17, 20, 22) ~ 'deciduous', 
+                                Vegetation %in% c(1, 3, 4, 6, 16, 18, 19, 21) ~ 'evergreen'), 
+         forestLeafType = case_when(Vegetation %in% c(1, 2, 3, 5, 16, 17, 18, 20) ~ 'broadleaf', 
+                                    Vegetation %in% c(4, 6, 7, 19, 21, 22) ~ 'needleleaf'), 
+         causeCat = case_when(stat_cause_descr %in% c('Arson') ~ 'Intentional Human Action', 
+                              stat_cause_descr %in% c('Campfire', 'Children', 'Equipment Use', 'Fireworks', 'Smoking') ~ 'Unintentional Human Action', 
+                              stat_cause_descr %in% c('Powerline', 'Railroad', 'Structure') ~ 'Infrastructure', 
+                              stat_cause_descr %in% c('Lightning', 'Debris Burning') ~ 'Natural Causes', 
+                              stat_cause_descr %in% c('Miscellaneous', 'Missing/Undefined') ~ 'Other'))
+
+FiresClean$disc_clean_date <- as_date(FiresClean$disc_clean_date, format = '%m/%d/%Y')
+FiresClean$cont_clean_date <- as_date(FiresClean$cont_clean_date, format = '%m/%d/%Y')
+FiresClean$disc_date_pre <- as_date(FiresClean$disc_date_pre, format = '%m/%d/%Y')
+FiresClean$disc_date_final <- as_date(FiresClean$disc_date_final, format = '%m/%d/%Y %h:%M')
+FiresClean$cont_date_final <- as_date(FiresClean$cont_date_final, format = '%m/%d/%Y %h:%M')
+```
+
+
+```{r, echo = FALSE, include = FALSE}
+continentalUS <- get_stamenmap(
+  bbox = c(left = -126.47, bottom = 24.21, right = -65.74, top = 49.72),
+  maptype = "terrain",
+  zoom = 4)
+
+Alaska <- get_stamenmap(
+  bbox = c(left = -189.23, bottom = 50.4, right = -129.38, top = 71.52),
+  maptype = "terrain",
+  zoom = 5)
+
+Hawaii <- get_stamenmap(
+  bbox = c(left = -160, bottom = 18.15, right = -154, top = 22.6),
+  maptype = "terrain",
+  zoom = 7)
+
+PuertoRico <- get_stamenmap(
+  bbox = c(left = -67.7, bottom = 17.17, right = -65, top = 19.14),
+  maptype = "terrain",
+  zoom = 8)
+```
+
+
+### Spatial Analysis
+
+#### Maps
+
+#### Bar Plots
+
+
+### Temporal Analysis
+
+#### Weather Patterns Before Fire
+
+#### By Fire Size Class
+
+```{r, echo = FALSE}
+ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
+  geom_density(alpha = .6, color = NA) + 
+  facet_wrap(~ fire_size_class) + 
+  scale_fill_manual(values = c('orange', 'darkorange', 'darkorange2', 'orangered', 'red', 'brown')) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density') +
+  theme_minimal() + 
+  theme(legend.position = 'none')
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) + 
+  geom_density(alpha = .6, color = NA) + 
+  facet_wrap(~ fire_size_class) + 
+  scale_fill_manual(values = c('orange', 'darkorange', 'darkorange2', 'orangered', 'red', 'brown')) + 
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density') + 
+  theme_minimal() + 
+  theme(legend.position = 'none')
+```
+
+
+#### By Cause of Fire
+
+
+
+
+
+
