@@ -23,6 +23,7 @@ library(usdata)
 library(lubridate)
 library(stringr)
 library(usmap)
+library(RColorBrewer)
 ```
 
 ```{r, echo = FALSE}
@@ -114,88 +115,57 @@ The numerical bar chart shows the number of fires in the dataset, grouped by the
 
 #### Maps
 
+Fires are concentrated in the Southern US, but high magnitude fires and large fires are more common in the Western US and Alaska.
+
 ```{r, echo = FALSE}
-# maps of fire locations
+# maps of fire locations with fire size class and magnitude
 ggmap(continentalUS) + 
   geom_point(
     data = FiresClean,
-    aes(x = longitude, y = latitude),
-    alpha = .4,
-    size = 0.2
+    aes(x = longitude, y = latitude, color = fire_mag, size = fire_size_class),
+    alpha = .2
   ) +
-  theme_map()
-
-ggmap(Alaska) + 
-  geom_point(
-    data = FiresClean,
-    aes(x = longitude, y = latitude),
-    alpha = .8,
-    size = 0.7
-  ) +
-  theme_map()
-
-ggmap(Hawaii) + 
-  geom_point(
-    data = FiresClean,
-    aes(x = longitude, y = latitude),
-    alpha = .8,
-    size = 1
-  ) +
-  theme_map()
-
-ggmap(PuertoRico) + 
-  geom_point(
-    data = FiresClean,
-    aes(x = longitude, y = latitude),
-    alpha = .8,
-    size = 1
-  ) +
-  theme_map()
-```
-
-
-Fires are concentrated in the Southern US, but high magnitude fires are more common in the Western US and Alaska.
-
-```{r, echo = FALSE}
-# maps of fire locations and fire magnitude
-ggmap(continentalUS) + 
-  geom_point(
-    data = FiresClean,
-    aes(x = longitude, y = latitude, color = fire_mag),
-    alpha = .2,
-    size = 0.2
-  ) +
-  theme_map()
+  scale_size_manual(values = c("B" = 0.1, "C" = 0.4, "D" = 0.7, "E" = 1, "F" = 1.3, "G" = 1.6)) +
+  theme_map() +
+  theme(legend.position = "right") +
+  scale_color_gradient(low="yellow", high="red")
 
 ggmap(Alaska) +
   geom_point(
     data = FiresClean,
-    aes(x = longitude, y = latitude, color = fire_mag),
-    alpha = .8,
-    size = 0.7
+    aes(x = longitude, y = latitude, color = fire_mag, size = fire_size_class),
+    alpha = .5
   ) +
-  theme_map()
+  scale_size_manual(values = c("B" = 0.1, "C" = 0.4, "D" = 0.7, "E" = 1, "F" = 1.3, "G" = 1.6)) +
+  theme_map() +
+  theme(legend.position = "right") +
+  scale_color_gradient(low="yellow", high="red")
 
 ggmap(Hawaii) +
   geom_point(
     data = FiresClean,
-    aes(x = longitude, y = latitude, color = fire_mag),
-    alpha = .8,
-    size = 1
+    aes(x = longitude, y = latitude, color = fire_mag, size = fire_size_class),
+    alpha = .5
   ) +
-  theme_map()
+  scale_size_manual(values = c("B" = 0.1, "C" = 0.4, "D" = 0.7, "E" = 1, "F" = 1.3, "G" = 1.6)) +
+  theme_map() +
+  theme(legend.position = "right") +
+  scale_color_gradient(low="yellow", high="red")
 
 ggmap(PuertoRico) +
   geom_point(
     data = FiresClean,
-    aes(x = longitude, y = latitude, color = fire_mag),
-    alpha = .8,
-    size = 1
+    aes(x = longitude, y = latitude, color = fire_mag, size = fire_size_class),
+    alpha = .5
   ) +
-  theme_map()
+  scale_size_manual(values = c("B" = 0.1, "C" = 0.4, "D" = 0.7, "E" = 1, "F" = 1.3, "G" = 1.6)) +
+  theme_map() +
+  theme(legend.position = "right") +
+  scale_color_gradient(low="yellow", high="red")
 ```
 
-The locations of the dots indicate a fire in the dataset and the color indicates the fire magnitude (lighter color corresponds to higher magnitude). The dots are most highly concentrated in the South (with a path carved out by the Mississippi River), but light colored dots are scattered throughout the Southwest and Pacific Northwest, with a populations also scattered through Texas and Florida. Alaska also has a high concentration of high magnitude fires. When combating the most dangerous and destructive fires, efforts should be focused on Alaska, the Southwest, and the Pacific Northwest.
+
+The locations of the dots indicate a fire in the dataset, the color indicates the fire magnitude (redder color corresponds to higher magnitude), and the size indicates the fire size class (B - G corresponds to smaller - larger). The dots are most highly concentrated in the South (with a path carved out by the Mississippi River), but light colored dots are scattered throughout the Southwest and Pacific Northwest, with a populations also scattered through Texas and Florida. Alaska also has a high concentration of high magnitude fires. When combating the most dangerous and destructive fires, efforts should be focused on Alaska, the Southwest, and the Pacific Northwest.
  
 
 Fires are concentrated in the Southern US, but large fires are more common in the Western US and Alaska.
@@ -252,7 +222,7 @@ ggmap(PuertoRico) +
   guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8)))
 ```
 
-The pattern shown in this set of maps echoes the message shown in the fire magnitude maps. Fires overall are mostly located in the South, but large fires (displayed by the purple and blue dots) are most common in the Southwest, Pacific Northwest, Texas, Florida, and Alaska.
+The pattern shown in this set of maps echoes the message shown in the above maps. Fires overall are mostly located in the South, but large fires (displayed by the purple and blue dots) are most common in the Southwest, Pacific Northwest, Texas, Florida, and Alaska.
 
 
 On a state-by-state basis, most wildfires in the US are started by natural causes.
