@@ -85,6 +85,8 @@ PuertoRico <- get_stamenmap(
 
 ### Introduction
 
+Large fires are grouped in certain vegetation types.
+
 ```{r, echo = FALSE}
 FiresCleanVeg <- FiresClean %>% 
   group_by(vegCat) %>% 
@@ -104,6 +106,8 @@ ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
        title = 'Proportion of Fires Size Classification by Surrounding Vegetation') + 
   theme_minimal()
 ```
+
+The numerical bar chart shows the number of fires in the dataset, grouped by the fire size class (B through G, smallest to largest) and the type of surrounding vegetation. The proportional bar chart shows the proportion of fires with the same grouping. Certain vegetations clearly have more fires than others (shrubland, forest, and desert dominate over grassland and unknown vegetation), but those are not necessarily the most dangerous vegetations. By looking at the proportional bar chart, we can see that grassland has the highest proportion of large fires (defined for the purposes of this study as class E, F, and G fires), followed by unknown vegetation desert. 
 
 
 ### Spatial Analysis
@@ -150,6 +154,8 @@ ggmap(PuertoRico) +
 ```
 
 
+Fires are concentrated in the Southern US, but high magnitude fires are more common in the Western US and Alaska.
+
 ```{r, echo = FALSE}
 # maps of fire locations and fire magnitude
 ggmap(continentalUS) + 
@@ -188,6 +194,11 @@ ggmap(PuertoRico) +
   ) +
   theme_map()
 ```
+
+The locations of the dots indicate a fire in the dataset and the color indicates the fire magnitude (lighter color corresponds to higher magnitude). The dots are most highly concentrated in the South (with a path carved out by the Mississippi River), but light colored dots are scattered throughout the Southwest and Pacific Northwest, with a populations also scattered through Texas and Florida. Alaska also has a high concentration of high magnitude fires. When combating the most dangerous and destructive fires, efforts should be focused on Alaska, the Southwest, and the Pacific Northwest.
+ 
+
+Fires are concentrated in the Southern US, but large fires are more common in the Western US and Alaska.
 
 ```{r, echo = FALSE}
 # maps of fire locations and fire class size
@@ -241,6 +252,9 @@ ggmap(PuertoRico) +
   guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8)))
 ```
 
+The pattern shown in this set of maps echoes the message shown in the fire magnitude maps. Fires overall are mostly located in the South, but large fires (displayed by the purple and blue dots) are most common in the Southwest, Pacific Northwest, Texas, Florida, and Alaska.
+
+
 On a state-by-state basis, most wildfires in the US are started by natural causes.
 
 ```{r, echo = FALSE}
@@ -286,6 +300,8 @@ For most states in the US, the most common cause of wildfires is natural causes.
 
 #### Bar Plots
 
+The states with the largest fires are concentrated in the western half of the US.
+
 ```{r, echo = FALSE}
 # large fires
 LargeFires_state <- FiresClean %>%
@@ -302,6 +318,7 @@ ggplot(LargeFires_state, aes(x = reorder(state, desc(number)), y = number)) +
        title = 'Top 10 US States with the Most Large Wildfires from 1992-2015')
 ```
 
+The states with the largest fires (fires at or above 300 acres) are mostly in the western half of the US, with outliers at the top of the graph (Alaska) and bottom of the graph (Florida). This is only a generalization, since Washington, Utah, Colorado, and Wyoming do not make the cut. 
 
 ### Temporal Analysis
 
