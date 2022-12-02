@@ -21,7 +21,8 @@ library(usmap)
 library(RColorBrewer)
 ```
 
-## Data Cleaning
+
+# data cleaning
 
 ```{r}
 FiresClean <- Fires %>%
@@ -58,7 +59,18 @@ FiresClean$disc_date_final <- as_date(FiresClean$disc_date_final, format = '%m/%
 FiresClean$cont_date_final <- as_date(FiresClean$cont_date_final, format = '%m/%d/%Y %h:%M')
 ```
 
-## Exploratory Visualizations
+### state area dataset
+
+```{r}
+stateArea = data.frame("state" = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"), 
+                      "stateSquareMI" = c(52420, 665384, 113990, 53179, 163695, 104094,	5543, 2489, 65758, 59425, 10932, 83569, 57914, 36420, 56273, 82278, 40408, 52378, 35380, 12406,	10554, 96714, 86936, 48432, 69707, 147040, 77348, 110572, 9349, 8723, 121590, 54555, 53819, 70698, 44826, 69899, 98379, 46054, 5325, 1545, 32020, 77116, 42144, 268596, 84897, 9616, 42775, 71298, 24230, 65496, 97813))
+
+stateArea$stateAcres = stateArea$stateSquareMI * 640
+```
+
+
+
+# bar charts by month
 
 ```{r}
 ggplot(FiresClean, aes(x = discovery_month, fill = stat_cause_descr)) +
@@ -71,6 +83,9 @@ ggplot(FiresClean, aes(x = discovery_month, fill = causeCat)) +
   labs(x = 'Month of Fire Discovery', y = 'Number of Fires', title = 'Number of Fires and Fire Cause by Month', fill = 'Fire Cause') +
   theme_classic()
 ```
+
+
+# maps
 
 ```{r}
 continentalUS <- get_stamenmap(
@@ -94,6 +109,7 @@ PuertoRico <- get_stamenmap(
   zoom = 8)
 ```
 
+### basic
 
 ```{r}
 ggmap(continentalUS) + 
@@ -132,6 +148,9 @@ ggmap(PuertoRico) +
   ) +
   theme_map()
 ```
+
+
+### by fire_mag and fire_size_class
 
 ```{r}
 ggmap(continentalUS) + 
@@ -231,6 +250,8 @@ ggmap(PuertoRico) +
 ```
 
 
+# by state
+
 ```{r}
 # MOST COMMON CAUSE OF FIRE BY STATE
 FiresCleanState <- FiresClean %>% 
@@ -270,6 +291,11 @@ plot_usmap(data = FiresCleanGroup, values = "causeCat", color = "black") +
        caption = "Data from federal, state, and local fire organizations in the US. \n Graphic made by Margaret Shepherd. \n Unintentional Human Action consists of campfires, children, equipment use, \n fireworks, and smoking.")
 ```
 
+
+# vegetation 
+
+### over time
+
 ```{r}
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = vegCat)) +
   geom_density(alpha = .5) + 
@@ -285,6 +311,9 @@ ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) +
   theme_classic() + 
   theme(legend.position = 'none')
 ```
+
+
+### bar charts by fire_size_class
 
 ```{r}
 FiresCleanVeg <- FiresClean %>% 
@@ -306,6 +335,11 @@ ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
   theme_minimal()
 ```
 
+
+# number of fires 
+
+### by grouped cause
+
 ```{r}
 FiresCleanCause <- FiresClean %>% 
   group_by(causeCat) %>% 
@@ -317,6 +351,9 @@ ggplot(FiresCleanCause, aes(x = causeCat)) +
        y = 'Number of Fires',
        title = 'Number of Fires by Fire Cause (grouped)')
 ```
+
+
+### by raw cause
 
 ```{r}
 FiresCause <- FiresClean %>% 
@@ -330,6 +367,10 @@ ggplot(FiresCause, aes(x = stat_cause_descr)) +
        title = 'Number of Fires by Fire Cause (ungrouped)') +
   theme(axis.text.x = element_text(angle = 45, hjust=1))
 ```
+
+# weather
+
+### data cleaning
 
 ```{r}
 Fires_temp <- FiresClean %>% 
@@ -389,6 +430,8 @@ prec <- c(avgprec30, avgprec15, avgprec7, avgpreccont)
 avg_weather <- data.frame(days_before, temp, wind, hum, prec)
 ```
 
+### weather variables over time
+
 ```{r, fig.width = 5, fig.height = 4}
 ggplot(data = avg_weather, aes(x = days_before, y = temp)) +
   geom_point(size = 4) +
@@ -419,6 +462,7 @@ ggplot(data = avg_weather, aes(x = days_before, y = prec)) +
        title = 'Average Precipitation Before a Wildfire \n Wildfires in the US, 1992-2015')
 ```
 
+### normalized weather variables over time
 
 ```{r}
 ggplot(data = avg_weather, aes(x = days_before)) +
@@ -439,6 +483,8 @@ ggplot(data = avg_weather, aes(x = days_before)) +
   theme_minimal()
 ```
 
+
+# states with most fires
 
 ```{r}
 ### EDA for large fires ###
@@ -464,6 +510,9 @@ ggplot(LargeFires_state, aes(x = reorder(state, desc(number)), y = number)) +
        y = 'Number of Large (300+ acres) Wildfires',
        title = 'Top 10 US States with the Most Large Wildfires from 1992-2015')
 ```
+
+
+# california 
 
 ```{r}
 ### EDA for large fires ###
@@ -504,11 +553,9 @@ ggplot(LargeFires_CA_cause1, aes(x = stat_cause_descr)) +
 ```
 
 
-# anina visualizations
+# size over time
 
-### by size
-
-size over entire time period
+### entire period
 
 they seem to spike approximately every 5 years for all fire size classes
 
@@ -532,7 +579,7 @@ ggplot(FiresClean, aes(x = disc_clean_date, y = fire_size)) +
   theme_minimal()
 ```
 
-size aggregated over day of the year
+### aggregated by day of the year
 
 smaller fires (B, C, D) spike in the spring, medium fires (E) have dual spikes in the spring and late summer, larger fires (F, G) spike in the late summer
 
@@ -566,7 +613,8 @@ ggplot(FiresClean, aes(x = yday(disc_clean_date), y = fire_size)) +
   theme_minimal()
 ```
 
-some more time things i want to try
+
+### histograms by fire_size_class and causeCat
 
 ```{r}
 ggplot(FiresClean, aes(x = year(disc_clean_date), fill = causeCat)) +
@@ -595,7 +643,7 @@ ggplot(FiresClean, aes(x = year(disc_clean_date), fill = fire_size_class)) +
 ```
 
 
-### by cause over time
+# cause over time
 
 ```{r}
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
@@ -625,7 +673,9 @@ ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) +
   theme(legend.position = 'none') 
 ```
 
-### remoteness over time
+
+
+# remoteness over time
 
 ```{r}
 ggplot(FiresClean, aes(x = disc_clean_date, y = remoteness)) + 
@@ -666,4 +716,32 @@ ggplot(FiresClean, aes(x = yday(disc_clean_date), y = remoteness)) +
 ```
 
 
+# percentage burned
+
+### data cleaning
+
+```{r}
+sizeByState <- FiresClean %>%
+  group_by(state) %>%
+  summarize(numFires = n(), 
+            avFireArea = mean(fire_size), 
+            totFireArea = sum(fire_size)) %>%
+  left_join(stateArea, by = c('state' = 'state')) %>%
+  mutate(avBurnPercent = 100*(avFireArea/stateAcres), 
+         totBurnPercent = 100*(totFireArea/stateAcres))
+```
+
+### map
+
+```{r}
+plot_usmap(data = sizeByState, values = "totBurnPercent", color = 'black') +
+  scale_fill_gradient(low = "orange", high = "red", name = "Percent") + 
+  theme(legend.position = "right") + 
+  labs(title = 'Total Percentage of State Area Burned, subset of fires from 1992-2015')
+
+plot_usmap(data = sizeByState, values = "avBurnPercent", color = 'black') +
+  scale_fill_gradient(low = "orange", high = "red", name = "Percent") + 
+  theme(legend.position = "right") + 
+  labs(title = 'Avereage Percentage of State Area Burned in each Fire, subset of fires from 1992-2015')
+```
 
