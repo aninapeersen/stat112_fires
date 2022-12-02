@@ -402,46 +402,59 @@ This plot was made by averaging the temperature, wind speed, humidity, and preci
 
 #### By Fire Size Class
 
+As shown in the faceted density plot below, fires are generally cyclical. Spikes occur approximately every 5 years, regardless of size classification.
+
 ```{r, echo = FALSE}
 ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ fire_size_class) + 
   scale_fill_manual(values = c('orange', 'darkorange', 'darkorange2', 'orangered', 'red', 'brown')) + 
-  labs(x = 'Date of Fire Discovery', y = 'Comparative Density') +
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = "Fire Density by Size Classification, 1992-2015") +
   theme_minimal() + 
   theme(legend.position = 'none')
+```
 
+Furthermore, when aggregated by day, small fires spike in the spring and large fires spike in the late summer. Intermediate fires spike in both the spring and late summer.
+
+```{r, echo = FALSE}
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ fire_size_class) + 
   scale_fill_manual(values = c('orange', 'darkorange', 'darkorange2', 'orangered', 'red', 'brown')) + 
   scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
-  labs(x = 'Date of Fire Discovery', y = 'Comparative Density') + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = "Fire Density by Size Classification, Aggregated by Day") + 
   theme_minimal() + 
   theme(legend.position = 'none')
 ```
 
+The distribution of fires over our entire study shows that fires are cyclical approximately every 5 years. This would presumably correspond to yearly patterns in drought and heat as well was natural regrowth and revival. This information is useful in predicting the fire risk for a year based on fires from the previous year. Furthermore, when aggregated across the data set to the day of the year, we see that smaller fires spike in the spring, larger fires spike in the late summer and early fall, and intermediate fires have dual spikes in both. This is also useful for determining fire risk within a year. 
+
 
 #### By Cause of Fire
+
+Now to look at the temporal distribution of fire by cause, we made the below density plot of cause over the entire study range. The most important take-away is again the cyclical nature of the fires, most noticeable in fires caused by either natural causes or unintentional human actions. Infrastructure- and intentionally-caused fires have much less noticeable patterns. Infrastructure fires remained fairly constant except the large drop from 2000-2005. After this drop, fire density increased fairly steadily, reaching pre-2000 levels around 2011, but subsequently dropped even lower than previously. Fires caused by intentional human action spiked around 2000 and had a second smaller spike around 2008. We are currently unsure why these spikes may have occurred, but are investigating further. Fires with other causes had a large spike around 2006 and a second spike around 2011. We are also unsure of causes for this spike, but will most likely not be able to find possible causes as the causes of these fires were largely not included in our dataset. 
 
 ```{r, echo = FALSE}
 ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ causeCat) + 
-  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', fill = 'Fire Cause') +
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', fill = 'Fire Cause', title = "Fire Density by Cause, 1992-2015") +
   theme_minimal() + 
   theme(legend.position = 'none') 
+```
 
+
+When the fire density is aggregated across our time frame by day, we see infrastructure- and intentionally-set fires, as well as those with other causes, spike in the spring. Fires started by natural causes have two spikes: in the spring and the late summer. This dual spike most likely corresponds to the different spikes for fire size as mentioned previously. Unintentional human action caused fires spike in the spring and again in the summer, with the latter spike most likely caused by fireworks on the 4th of July. 
+
+```{r, echo = FALSE}
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
   geom_density(alpha = .6, color = NA) + 
-  labs(x = 'Date of Fire Discovery', y = 'Comparative Density') +
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Fire Density by Cause, Aggregated by Day') +
   facet_wrap(~ causeCat) + 
   scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
   theme_minimal() + 
   theme(legend.position = 'none')
 ```
 
-
-
-
+These density plots in and of themselves lend important insights into fire prevalence. However, the most important information for fire-prediction comes from combining the information here with that shown in the density by cause plots. 
 
