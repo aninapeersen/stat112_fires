@@ -733,14 +733,16 @@ sizeByState <- FiresClean %>%
 
 ### map
 
+idaho has largest average percent burned (then nevada, hawaii, washington, oregon). idaho has largest total percent burned (then oregon, nevada, california, washington). 
+
 ```{r}
 plot_usmap(data = sizeByState, values = "totBurnPercent", color = 'black') +
-  scale_fill_gradient(low = "orange", high = "red", name = "Percent") + 
+  scale_fill_gradient(low = "darkgoldenrod1", high = "red", name = "Percent") + 
   theme(legend.position = "right") + 
   labs(title = 'Total Percentage of State Area Burned, subset of fires from 1992-2015')
 
 plot_usmap(data = sizeByState, values = "avBurnPercent", color = 'black') +
-  scale_fill_gradient(low = "orange", high = "red", name = "Percent") + 
+  scale_fill_gradient(low = "darkgoldenrod1", high = "red", name = "Percent") + 
   theme(legend.position = "right") + 
   labs(title = 'Avereage Percentage of State Area Burned in each Fire, subset of fires from 1992-2015')
 ```
