@@ -2,7 +2,14 @@
 title: "Progress Report"
 author: "Margaret Shepherd, Anina Peersen"
 date: 'December 5, 2022'
-output: html_document
+output: 
+  bookdown::html_document2:
+    split_by: none
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      toc_collapsed: true
+    number_sections: false
 ---
 
 <style>
@@ -88,7 +95,7 @@ PuertoRico <- get_stamenmap(
 
 Large fires are grouped in certain vegetation types.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 FiresCleanVeg <- FiresClean %>% 
   group_by(vegCat) %>% 
   summarize(num = n())
@@ -111,6 +118,7 @@ ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
 The numerical bar chart shows the number of fires in the dataset, grouped by the fire size class (B through G, smallest to largest) and the type of surrounding vegetation. The proportional bar chart shows the proportion of fires with the same grouping. Certain vegetations clearly have more fires than others (shrubland, forest, and desert dominate over grassland and unknown vegetation), but those are not necessarily the most dangerous vegetations. By looking at the proportional bar chart, we can see that grassland has the highest proportion of large fires (defined for the purposes of this study as class E, F, and G fires), followed by unknown vegetation desert. 
 
 
+
 ### Spatial Analysis
 
 #### Maps
@@ -127,7 +135,7 @@ FiresClean_class <- FiresClean %>%
 
 Fires are concentrated in the Southern US, but high magnitude fires and large fires are more common in the Western US and Alaska.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 # maps of fire locations with fire size class and magnitude
 ggmap(continentalUS) + 
   geom_point(
@@ -200,7 +208,7 @@ The locations of the dots indicate a fire in the dataset, the color indicates th
 
 Fires are concentrated in the Southern US, but large fires are more common in the Western US and Alaska.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 # maps of fire locations and fire class size
 ggmap(continentalUS) + 
   geom_point(
@@ -252,7 +260,7 @@ The pattern shown in this set of maps echoes the message shown in the above maps
 
 On a state-by-state basis, most wildfires in the US are started by natural causes.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 # MOST COMMON CAUSE OF FIRE BY STATE
 FiresCleanState <- FiresClean %>% 
   group_by(state, causeCat) %>% 
@@ -297,7 +305,7 @@ For most states in the US, the most common cause of wildfires is natural causes.
 
 The states with the largest fires are concentrated in the western half of the US.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 # large fires
 LargeFires_state <- FiresClean %>%
   filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G") %>% 
@@ -316,6 +324,16 @@ ggplot(LargeFires_state, aes(x = reorder(state, desc(number)), y = number)) +
 The states with the largest fires (fires at or above 300 acres) are mostly in the western half of the US, with outliers at the top of the graph (Alaska) and bottom of the graph (Florida). This is only a generalization, since Washington, Utah, Colorado, and Wyoming do not make the cut. 
 
 ### Temporal Analysis
+
+As shown in the plot below showing all fires in our dataset, fires are generally cyclical with spikes every 4-6 years. This cycle generally corresponds to natural cycles in precipitation levels, temperature, and global cycles such as El Niño phases. We are looking into ways to visualize fire cycles alongside these other cycles. 
+
+```{r, echo = FALSE, fig.align='center'}
+ggplot(FiresClean, aes(x = disc_clean_date)) + 
+  geom_density(fill = 'orangered', color = NA, alpha = .7) + 
+  labs(x = "Date of Fire Discovery", y = "Comparative Density", title = "Density of Fires, 1992-2015") + 
+  theme_minimal() 
+```
+
 
 #### Weather Patterns Before Fire
 
@@ -379,7 +397,7 @@ avg_weather <- data.frame(days_before, temp, wind, hum, prec)
 
 Decreasing precipitation in the 30 days preceding a wildfire is the most predictive weather phenomenon.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 ggplot(data = avg_weather, aes(x = days_before)) +
   geom_point(aes(y = temp/max(temp), color = "Temperature")) +
   geom_point(aes(y = wind/max(wind), color = "Wind")) +
@@ -404,7 +422,7 @@ This plot was made by averaging the temperature, wind speed, humidity, and preci
 
 As shown in the faceted density plot below, fires are generally cyclical. Spikes occur approximately every 5 years, regardless of size classification.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ fire_size_class) + 
@@ -416,7 +434,7 @@ ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) +
 
 Furthermore, when aggregated by day, small fires spike in the spring and large fires spike in the late summer. Intermediate fires spike in both the spring and late summer.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ fire_size_class) + 
@@ -434,7 +452,7 @@ The distribution of fires over our entire study shows that fires are cyclical ap
 
 Now to look at the temporal distribution of fire by cause, we made the below density plot of cause over the entire study range. The most important take-away is again the cyclical nature of the fires, most noticeable in fires caused by either natural causes or unintentional human actions. Infrastructure- and intentionally-caused fires have much less noticeable patterns. Infrastructure fires remained fairly constant except the large drop from 2000-2005. After this drop, fire density increased fairly steadily, reaching pre-2000 levels around 2011, but subsequently dropped even lower than previously. Fires caused by intentional human action spiked around 2000 and had a second smaller spike around 2008. We are currently unsure why these spikes may have occurred, but are investigating further. Fires with other causes had a large spike around 2006 and a second spike around 2011. We are also unsure of causes for this spike, but will most likely not be able to find possible causes as the causes of these fires were largely not included in our dataset. 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ causeCat) + 
@@ -446,7 +464,7 @@ ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) +
 
 When the fire density is aggregated across our time frame by day, we see infrastructure- and intentionally-set fires, as well as those with other causes, spike in the spring. Fires started by natural causes have two spikes: in the spring and the late summer. This dual spike most likely corresponds to the different spikes for fire size as mentioned previously. Unintentional human action caused fires spike in the spring and again in the summer, with the latter spike most likely caused by fireworks on the 4th of July. 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.align='center'}
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
   geom_density(alpha = .6, color = NA) + 
   labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Fire Density by Cause, Aggregated by Day') +
