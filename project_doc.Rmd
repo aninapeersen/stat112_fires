@@ -553,6 +553,73 @@ ggplot(LargeFires_CA_cause1, aes(x = stat_cause_descr)) +
 ```
 
 
+```{r}
+california <- FiresClean %>%
+  filter(state == "CA")
+
+texas <- FiresClean %>%
+  filter(state == "TX")
+
+calitex <- FiresClean %>%
+  filter(state %in% c("CA", "TX"))
+
+idaho <- FiresClean %>%
+  filter(state == "ID")
+
+washington <- FiresClean %>%
+  filter(state == "WA")
+
+oregon <- FiresClean %>%
+  filter(state == "OR")
+
+idatex <- FiresClean %>%
+  filter(state %in% c("TX", "ID"))
+```
+
+
+```{r}
+head(calitex %>% group_by(state, disc_pre_year) %>% summarize(numFires = n()) %>% arrange(desc(numFires)), n = 15)
+```
+
+```{r}
+ggplot(california, aes(x = disc_clean_date)) + 
+  geom_density()
+
+ggplot(texas, aes(x = disc_clean_date)) + 
+  geom_density()
+
+ggplot(idaho, aes(x = disc_clean_date)) + 
+  geom_density()
+
+ggplot(oregon, aes(x = disc_clean_date)) + 
+  geom_density()
+
+ggplot(washington, aes(x = disc_clean_date)) + 
+  geom_density()
+```
+
+```{r}
+ggplot(calitex, aes(x = disc_clean_date, fill = state)) + 
+  geom_density(alpha = .65, color = 'white') + 
+  scale_fill_manual(name = NULL, values = c('orangered', 'orange'), labels = c("California", "Texas")) + 
+  labs(x = "Date of Fire Discovery", y = "Comparative Density", title = "Temporal Trend of Fires in California and Texas, 1992-2015") + 
+  theme(legend.position = "bottom") + 
+  theme_minimal()
+```
+
+```{r}
+date_range <- which(idatex$disc_clean_date %in% as.Date(c("1997-12-16")))
+
+ggplot(idatex, aes(x = disc_clean_date, fill = state)) + 
+  geom_vline(xintercept = as.numeric(FiresClean$disc_clean_date[date_range]), color = "blue", alpha = .8, size = 2) + 
+  geom_density(alpha = .65, color = 'white') + 
+  scale_fill_manual(name = NULL, values = c('orangered', 'orange'), labels = c("Idaho", "Texas")) + 
+  labs(x = "Date of Fire Discovery", y = "Comparative Density", title = "Temporal Trend of Fires in Idaho and Texas, 1992-2015") + 
+  theme_minimal() + 
+  theme(legend.position = "bottom") 
+```
+
+
 # size over time
 
 ### entire period
@@ -660,10 +727,22 @@ ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
   theme_minimal() + 
   theme(legend.position = 'none')
 
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
+  geom_density(alpha = .6, color = 'white', position = position_stack()) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density') +
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  theme_minimal() 
+
 ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
   geom_density(alpha = .4, color = 'white') + 
   labs(x = 'Date of Fire Discovery', y = 'Comparative Density', fill = 'Fire Cause') +
   theme_minimal()
+
+ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) +
+  geom_density(alpha = .6, color = 'white', position = position_stack()) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density') +
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  theme_minimal() 
 
 ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
   geom_density(alpha = .6, color = NA) + 
