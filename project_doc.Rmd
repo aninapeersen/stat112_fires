@@ -512,6 +512,21 @@ ggplot(LargeFires_state, aes(x = reorder(state, desc(number)), y = number)) +
 ```
 
 
+```{r}
+LargeFires_TX <- FiresClean %>%
+  filter(state == "TX") %>% 
+  filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G")
+
+ggplot(LargeFires_TX, aes(x = vegCat, fill = causeCat)) +
+  geom_bar(position = 'stack') +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Fires',
+       title = 'Number of Large Wildfires in TX by Surrounding Vegetation and Fire Cause') +
+  theme_minimal()
+
+```
+
+
 # california 
 
 ```{r}
@@ -608,10 +623,7 @@ ggplot(calitex, aes(x = disc_clean_date, fill = state)) +
 ```
 
 ```{r}
-date_range <- which(idatex$disc_clean_date %in% as.Date(c("1997-12-16", "1997-10-20", "1997-01-18")))
-
 ggplot(idatex, aes(x = disc_clean_date, fill = state)) + 
-  geom_vline(xintercept = FiresClean$disc_clean_date[date_range], color = "lightskyblue") + 
   geom_density(alpha = .65, color = 'white') + 
   scale_fill_manual(name = NULL, values = c('orangered', 'orange'), labels = c("Idaho", "Texas")) + 
   labs(x = "Date of Fire Discovery", y = "Comparative Density", title = "Temporal Trend of Fires in Idaho and Texas, 1992-2015") + 
