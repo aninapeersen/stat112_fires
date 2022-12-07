@@ -624,7 +624,7 @@ ggplot(idatex, aes(x = disc_clean_date, fill = state)) +
 
 ### entire period
 
-they seem to spike approximately every 5 years for all fire size classes
+they seem to spike approximately every 5 years for all fire size classes 
 
 ```{r}
 ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
