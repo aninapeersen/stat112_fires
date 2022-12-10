@@ -632,6 +632,41 @@ ggplot(idatex, aes(x = disc_clean_date, fill = state)) +
 ```
 
 
+```{r}
+LaNina2010 <- data.frame(xstart = as.POSIXct('2010-07-01'), xend = as.POSIXct('2012-07-01'))
+LaNina2008 <- data.frame(xstart = as.POSIXct('2008-07-01'), xend = as.POSIXct('2009-07-01'))
+LaNina2005 <- data.frame(xstart = as.POSIXct('2005-07-01'), xend = as.POSIXct('2006-07-01'))
+LaNina1998 <- data.frame(xstart = as.POSIXct('1998-07-01'), xend = as.POSIXct('2001-07-01'))
+LaNina1995 <- data.frame(xstart = as.POSIXct('1995-07-01'), xend = as.POSIXct('1996-07-01'))
+
+ElNino1997 <- data.frame(xstart = as.POSIXct('1997-06-01'), xend = as.POSIXct('1998-06-01'))
+ElNino2002 <- data.frame(xstart = as.POSIXct('2002-06-01'), xend = as.POSIXct('2003-06-01'))
+ElNino2004 <- data.frame(xstart = as.POSIXct('2004-06-01'), xend = as.POSIXct('2005-06-01'))
+ElNino2006 <- data.frame(xstart = as.POSIXct('2006-06-01'), xend = as.POSIXct('2007-06-01'))
+ElNino2009 <- data.frame(xstart = as.POSIXct('2009-06-01'), xend = as.POSIXct('2010-06-01'))
+ElNino2014 <- data.frame(xstart = as.POSIXct('2014-05-01'), xend = as.POSIXct('2015-12-31'))
+
+ggplot() + 
+  geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .75, fill = 'blue') + 
+  geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'blue') +
+  geom_rect(data = LaNina2005, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'blue') + 
+  geom_rect(data = LaNina1998, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'blue') + 
+  geom_rect(data = LaNina1995, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'blue') + 
+  geom_rect(data = ElNino1997, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .75, fill = 'purple') + 
+  geom_rect(data = ElNino2002, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'purple') + 
+  geom_rect(data = ElNino2004, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'purple') +
+  geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'purple') +
+  geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'purple') +
+  geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .75, fill = 'purple') +
+  geom_density(data = idatex, aes(x = as.POSIXct(disc_clean_date), fill = state), alpha = .65, color = 'white') + 
+  scale_fill_manual(name = NULL, values = c('orangered', 'orange'), labels = c("Idaho", "Texas")) +
+  xlim(as.POSIXct('1992-01-01'), as.POSIXct('2015-12-31')) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Fires over Time in Idaho and Texas with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in purple. The La Niña event starting 2010\nwas particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014.') + 
+  theme_minimal() + 
+  theme(legend.position = "bottom") 
+```
+
+
 # size over time
 
 ### entire period
