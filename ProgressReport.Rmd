@@ -420,7 +420,7 @@ This plot was made by averaging the temperature, wind speed, humidity, and preci
 
 #### Global Weather Patterns
 
-Two global weather patters with effects on fire likelihood are El Niño and La Niña. They are two sides of the same coin: El Niño is the warm counterpart and La Niña the cold. Overall, El Niño starts with above average ocean surface temperatures in the central and eastern Pacific Ocean. Globally, El Niño causes the low-level trade winds that blow east to west along the equator weaken or even blow the opposite direction. Understandably, this has massive implications for global weather trends. For instance, there is reduced rainfall over Southeast and South Asia and increased rainfall - and subsequently increased tropical storm formation - in the greater Pacific. In the US, El Niño increases precipitation over the Gulf Coast and decreases precipitation in Hawaii, the Ohio Valley, the Pacific Northwest, and the Rocky Mountains. On the other hand, La Niña is the opposite: it starts with below average ocean surface temperatures in the central and eastern Pacific which leads to heavy rains over Southeast Asia and Southern Africa, while Northwest Africa will be drier than usual. In the US, La Niña increases precipitation in the Northern Midwest, the Northern Rocky Mountains, the Pacific Northwest, and Northern California. Simultaneously, precipitation decreases across the entire southern US, from California to Florida. Both of these weather patterns happen approximately every 2-7 years and their effects can be anywhere from 6 months to 2 years. 
+Two global weather patters with effects on fire likelihood are El Niño and La Niña. They are two sides of the same coin: El Niño is the warm counterpart and La Niña the cold. Overall, El Niño starts with above average ocean surface temperatures in the central and eastern Pacific Ocean. Globally, El Niño causes the low-level trade winds that blow east to west along the equator weaken or even blow the opposite direction. This has massive implications for global weather trends. For instance, there is reduced rainfall over Southeast and South Asia, increased rainfall - and subsequently increased tropical storm formation - in the greater Pacific, and more. In the US, El Niño increases precipitation over the Gulf Coast and decreases precipitation in Hawaii, the Ohio Valley, the Pacific Northwest, and the Rocky Mountains. On the other hand, La Niña is the opposite: it starts with below average ocean surface temperatures in the central and eastern Pacific which leads to heavy rains over Southeast Asia and Southern Africa, while Northwest Africa will be drier than usual. In the US, La Niña increases precipitation in the Northern Midwest, the northern Rocky Mountains, the Pacific Northwest, and northern California. Simultaneously, precipitation decreases across the entire southern US, from California to Florida. Both of these weather patterns happen approximately every 2-7 years and their effects can be anywhere from 3 months to 2 years. 
 
 Given this basic understanding of El Niño and La Niña, it is clear that they affect fire trends, as they both affect the leading predictor of fire, precipitation. Below, you can see our spotlight on natural fires in Idaho and Texas, as both states have some of the most fires in the US and have opposite effects of El Niño and La Niña. We limited this graph to natural fires as global meteorological trends will primarily impact on natural fires. 
 
@@ -430,37 +430,37 @@ idatexnatural <- FiresClean %>%
   filter(state %in% c("ID", "TX")) %>%
   filter(causeCat == "Natural Causes")
 
-LaNina2010 <- data.frame(xstart = as.POSIXct('2010-07-01'), xend = as.POSIXct('2012-07-01'))
-LaNina2008 <- data.frame(xstart = as.POSIXct('2008-07-01'), xend = as.POSIXct('2009-07-01'))
-LaNina2005 <- data.frame(xstart = as.POSIXct('2005-07-01'), xend = as.POSIXct('2006-07-01'))
-LaNina1998 <- data.frame(xstart = as.POSIXct('1998-07-01'), xend = as.POSIXct('2001-07-01'))
-LaNina1995 <- data.frame(xstart = as.POSIXct('1995-07-01'), xend = as.POSIXct('1996-07-01'))
+LaNina2010 <- data.frame(xstart = as.POSIXct('2010-05-01'), xend = as.POSIXct('2012-03-01'))
+LaNina2008 <- data.frame(xstart = as.POSIXct('2008-10-01'), xend = as.POSIXct('2009-02-01'))
+LaNina2005 <- data.frame(xstart = as.POSIXct('2005-10-01'), xend = as.POSIXct('2006-02-01'))
+LaNina1998 <- data.frame(xstart = as.POSIXct('1998-06-01'), xend = as.POSIXct('2001-01-01'))
+LaNina1995 <- data.frame(xstart = as.POSIXct('1995-07-01'), xend = as.POSIXct('1996-02-01'))
 
-ElNino1997 <- data.frame(xstart = as.POSIXct('1997-06-01'), xend = as.POSIXct('1998-06-01'))
-ElNino2002 <- data.frame(xstart = as.POSIXct('2002-06-01'), xend = as.POSIXct('2003-06-01'))
-ElNino2004 <- data.frame(xstart = as.POSIXct('2004-06-01'), xend = as.POSIXct('2005-06-01'))
-ElNino2006 <- data.frame(xstart = as.POSIXct('2006-06-01'), xend = as.POSIXct('2007-06-01'))
-ElNino2009 <- data.frame(xstart = as.POSIXct('2009-06-01'), xend = as.POSIXct('2010-06-01'))
-ElNino2014 <- data.frame(xstart = as.POSIXct('2014-05-01'), xend = as.POSIXct('2015-12-31'))
+ElNino1997 <- data.frame(xstart = as.POSIXct('1997-04-01'), xend = as.POSIXct('1998-04-01'))
+ElNino2002 <- data.frame(xstart = as.POSIXct('2002-05-01'), xend = as.POSIXct('2003-01-01'))
+ElNino2004 <- data.frame(xstart = as.POSIXct('2004-06-01'), xend = as.POSIXct('2005-01-01'))
+ElNino2006 <- data.frame(xstart = as.POSIXct('2006-08-01'), xend = as.POSIXct('2007-01-01'))
+ElNino2009 <- data.frame(xstart = as.POSIXct('2009-06-01'), xend = as.POSIXct('2010-02-01'))
+ElNino2014 <- data.frame(xstart = as.POSIXct('2014-09-01'), xend = as.POSIXct('2015-12-31'))
 
 ggplot() + 
-  geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .75, fill = 'blue') + 
-  geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'blue') +
-  geom_rect(data = LaNina2005, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'blue') + 
-  geom_rect(data = LaNina1998, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'blue') + 
-  geom_rect(data = LaNina1995, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'blue') + 
-  geom_rect(data = ElNino1997, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .75, fill = 'purple') + 
-  geom_rect(data = ElNino2002, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'purple') + 
-  geom_rect(data = ElNino2004, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'purple') +
-  geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'purple') +
-  geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .4, fill = 'purple') +
-  geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .75, fill = 'purple') +
-  geom_density(data = idatexnatural, aes(x = as.POSIXct(disc_clean_date), fill = state), alpha = .65, color = 'white') + 
+  geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'blue') + 
+  geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') +
+  geom_rect(data = LaNina2005, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1998, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1995, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = ElNino1997, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') + 
+  geom_rect(data = ElNino2002, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') + 
+  geom_rect(data = ElNino2004, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') +
+  geom_density(data = idatexnatural, aes(x = as.POSIXct(disc_clean_date), fill = state), alpha = .7, color = 'white') + 
   scale_fill_manual(name = NULL, values = c('orangered', 'orange'), labels = c("Idaho", "Texas")) +
   xlim(as.POSIXct('1992-01-01'), as.POSIXct('2015-12-31')) + 
-  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in Idaho and Texas with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in purple. The La Niña event starting\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014.') + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in Idaho and Texas with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in pink. The La Niña event starting\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014 with darker pink.', caption = 'El Niño and La Niña dates sourced from https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php.') + 
   theme_minimal() + 
-  theme(legend.position = "bottom") 
+  theme(legend.position = "top") 
 ```
 
 As shown on the graph, the three low-level fire density spikes in Idaho correspond to La Niña events. However, interesting the 2010-2012 event did not correspond to a larger spike in fires, despite being more intense. This result is also interesting because La Niña causes increased precipitation in Idaho, not decreased. We would expect to see decreased precipitation with spikes in fires. However this could be because the increased rainfall would allow undergrowth to thrive, which would then heighten fire risk when the rains stopped and the plants were more dried out. 
