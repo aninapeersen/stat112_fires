@@ -18,6 +18,8 @@ text-align: justify}
 </style> 
 
 ```{r setup, include=FALSE}
+# reading in libraries
+
 knitr::opts_chunk$set(echo = FALSE)
 
 Fires = read.csv("FW_Veg_Rem_Combined.csv")
@@ -34,6 +36,8 @@ library(RColorBrewer)
 ```
 
 ```{r, echo = FALSE}
+# data cleaning
+
 FiresClean <- Fires %>%
   mutate(discovery_month = fct_relevel(discovery_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
          disc_pre_month = fct_relevel(disc_pre_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
@@ -70,6 +74,8 @@ FiresClean$cont_date_final <- as_date(FiresClean$cont_date_final, format = '%m/%
 
 
 ```{r, echo = FALSE, include = FALSE}
+# creating stamen maps
+
 continentalUS <- get_stamenmap(
   bbox = c(left = -126.47, bottom = 24.21, right = -65.74, top = 49.72),
   maptype = "terrain",
@@ -107,6 +113,8 @@ The primary variables used in this data set are fire size classification, a cate
 #### Fires in the United States
 
 ```{r, echo = FALSE, include = FALSE}
+# further data cleaning
+
 FiresClean_class <- FiresClean %>% 
   mutate(fire_size_class = fct_recode(fire_size_class, "Class B: 1/4 acre to 10 acres" = "B", 
                             "Class C: 10 acres to 100 acres" = "C",
@@ -119,6 +127,7 @@ FiresClean_class <- FiresClean %>%
 
 ```{r, echo = FALSE, fig.align='center'}
 # maps of fire locations with fire size class and magnitude
+
 ggmap(continentalUS) + 
   geom_point(
     data = FiresClean_class,
@@ -194,7 +203,9 @@ Further on in the report we’ll talk about using precipitation to predict wildf
 
 
 ```{r, echo = FALSE, fig.align='center'}
-# MOST COMMON CAUSE OF FIRE BY STATE
+
+# most common cause of fire by state
+
 FiresCleanState <- FiresClean %>% 
   group_by(state, causeCat) %>% 
   summarize(num_by_cause = n())
@@ -239,6 +250,8 @@ For most states in the US, the most common cause of wildfires is natural causes.
 Large fires are grouped in certain vegetation types.
 
 ```{r, echo = FALSE, fig.align='center'}
+# vegetation and fire size class bar plots
+
 FiresCleanVeg <- FiresClean %>% 
   group_by(vegCat) %>% 
   summarize(num = n())
@@ -247,14 +260,16 @@ ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
   geom_bar(position = 'stack') +
   labs(x = 'Surrounding Vegetation',
        y = 'Number of Fires',
-       title = 'Number of Fires by Surrounding Vegetation and Fire Size Classification') + 
+       title = 'Number of Fires by Surrounding Vegetation and Fire Size Classification', 
+       fill = 'Fire Size\nClassification') + 
   theme_minimal()
 
 ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
   geom_bar(position = 'fill') +
   labs(x = 'Surrounding Vegetation',
        y = 'Number of Fires',
-       title = 'Proportion of Fires Size Classification by Surrounding Vegetation') + 
+       title = 'Proportion of Fires Size Classification by Surrounding Vegetation', 
+       fill = 'Fire Size\nClassification') + 
   theme_minimal()
 ```
 
@@ -266,6 +281,8 @@ The numerical bar chart shows the number of fires in the dataset, grouped by the
 As shown in the plot below showing all fires in our dataset, fires are generally cyclical with spikes every 4-6 years. This cycle generally corresponds to natural cycles in precipitation levels, temperature, and global cycles such as El Niño phases. We are looking into ways to visualize fire cycles alongside these other cycles. 
 
 ```{r, echo = FALSE, fig.align='center'}
+# density of fires over time, all states and full time period
+
 ggplot(FiresClean, aes(x = disc_clean_date)) + 
   geom_density(fill = 'orangered', color = NA, alpha = .7) + 
   labs(x = "Date of Fire Discovery", y = "Comparative Density", title = "Density of Fires, 1992-2015") + 
@@ -276,13 +293,16 @@ ggplot(FiresClean, aes(x = disc_clean_date)) +
 #### Weather Immediately Before a Fire
 
 ```{r, echo = FALSE, include = FALSE}
+# normalized graph of weather immediately before a fire
+
+## data cleaning
+
 Fires_temp <- FiresClean %>% 
   filter(weather_file != 'File Not Found') %>% 
   filter(Temp_pre_30 != 0) %>% 
   filter(Temp_pre_15 != 0) %>%
   filter(Temp_pre_7 != 0) %>%
   filter(Temp_cont != 0) 
-  # filter(Temp_pre_30 != 0 | Temp_pre_15 != 0 | Temp_pre_7 != 0 | Temp_cont != 0) # keeps row if all four temps are nonzero
 
 Fires_wind <- FiresClean %>% 
   filter(weather_file != 'File Not Found') %>%
@@ -304,6 +324,8 @@ Fires_prec <- FiresClean %>%
   filter(Prec_pre_15 != 0) %>%
   filter(Prec_pre_7 != 0) %>%
   filter(Prec_cont != 0)
+
+## normalizing
 
 (avgtemp30 = mean(Fires_temp$Temp_pre_30))
 (avgtemp15 = mean(Fires_temp$Temp_pre_15))
@@ -335,6 +357,8 @@ avg_weather <- data.frame(days_before, temp, wind, hum, prec)
 
 
 ```{r, echo = FALSE, fig.align='center'}
+## plotting
+
 ggplot(data = avg_weather, aes(x = days_before)) +
   geom_point(aes(y = temp/max(temp), color = "Temperature")) +
   geom_point(aes(y = wind/max(wind), color = "Wind")) +
@@ -361,6 +385,8 @@ For most fires in the dataset, there is data on the temperature, wind speed, hum
 As shown in the faceted density plot below, fires are generally cyclical. Spikes occur approximately every 5 years, regardless of size classification.
 
 ```{r, echo = FALSE, fig.align='center'}
+# density of fires by fire size classification over entire time period
+
 ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ fire_size_class) + 
@@ -373,6 +399,8 @@ ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) +
 Furthermore, when aggregated by day, small fires spike in the spring and large fires spike in the late summer. Intermediate fires spike in both the spring and late summer.
 
 ```{r, echo = FALSE, fig.align='center'}
+# density of fires aggregated by day
+
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ fire_size_class) + 
@@ -391,6 +419,8 @@ The distribution of fires over our entire study shows that fires are cyclical ap
 Now to look at the temporal distribution of fire by cause, we made the below density plot of cause over the entire study range. The most important take-away is again the cyclical nature of the fires, most noticeable in fires caused by either natural causes or unintentional human actions. Infrastructure- and intentionally-caused fires have much less noticeable patterns. Infrastructure fires remained fairly constant except the large drop from 2000-2005. After this drop, fire density increased fairly steadily, reaching pre-2000 levels around 2011, but subsequently dropped even lower than previously. Fires caused by intentional human action spiked around 2000 and had a second smaller spike around 2008. We are currently unsure why these spikes may have occurred, but are investigating further. Fires with other causes had a large spike around 2006 and a second spike around 2011. We are also unsure of causes for this spike, but will most likely not be able to find possible causes as the causes of these fires were largely not included in our dataset. 
 
 ```{r, echo = FALSE, fig.align='center'}
+# density of fires over entire time period by fire cause
+
 ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
   geom_density(alpha = .6, color = NA) + 
   facet_wrap(~ causeCat) + 
@@ -403,6 +433,8 @@ ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) +
 When the fire density is aggregated across our time frame by day, we see infrastructure- and intentionally-set fires, as well as those with other causes, spike in the spring. Fires started by natural causes have two spikes: in the spring and the late summer. This dual spike most likely corresponds to the different spikes for fire size as mentioned previously. Unintentional human action caused fires spike in the spring and again in the summer, with the latter spike most likely caused by fireworks on the 4th of July. 
 
 ```{r, echo = FALSE, fig.align='center'}
+# density of fires by fire cause, aggregated by day
+
 ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
   geom_density(alpha = .6, color = NA) + 
   labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Fire Density by Cause, Aggregated by Day') +
@@ -417,10 +449,10 @@ These density plots in and of themselves lend important insights into fire preva
 
 ### Spotlight on California, Texas, and Idaho
 
+In our investigation, we quickly decided to focus on specific states to dig further into causes and possible ideas at prevention. We decided to focus on California, Idaho, and Texas as they have large numbers of fires. For this narrowed exploration, we primarily looked at vegetation at locations of fires and global weather patterns. 
+
 
 #### Surrounding Vegetation
-
-
 
 ```{r, echo = FALSE, fig.align='center'}
 ### EDA for CA large fires ###
@@ -471,13 +503,28 @@ The above histograms only include data for fire classes E, F, and G (300 acres o
 
 Two global weather patters with effects on fire likelihood are El Niño and La Niña. They are two sides of the same coin: El Niño is the warm counterpart and La Niña the cold. Overall, El Niño starts with above average ocean surface temperatures in the central and eastern Pacific Ocean. Globally, El Niño causes the low-level trade winds that blow east to west along the equator weaken or even blow the opposite direction. This has massive implications for global weather trends. For instance, there is reduced rainfall over Southeast and South Asia, increased rainfall - and subsequently increased tropical storm formation - in the greater Pacific, and more. In the US, El Niño increases precipitation over the Gulf Coast and decreases precipitation in Hawaii, the Ohio Valley, the Pacific Northwest, and the Rocky Mountains. On the other hand, La Niña is the opposite: it starts with below average ocean surface temperatures in the central and eastern Pacific which leads to heavy rains over Southeast Asia and Southern Africa, while Northwest Africa will be drier than usual. In the US, La Niña increases precipitation in the Northern Midwest, the northern Rocky Mountains, the Pacific Northwest, and northern California. Simultaneously, precipitation decreases across the entire southern US, from California to Florida. Both of these weather patterns happen approximately every 2-7 years and their effects can be anywhere from 3 months to 2 years. 
 
-Given this basic understanding of El Niño and La Niña, it is clear that they affect fire trends, as they both affect the leading predictor of fire, precipitation. Below, you can see our spotlight on natural fires in Idaho and Texas, as both states have some of the most fires in the US and have opposite effects of El Niño and La Niña. California is ommited because northern and southern California have opposite effects from La Niña and El Niño, and so the net effect was generally nullified. We limited this graph to natural fires as global meteorological trends will primarily impact on natural fires. 
+Given this basic understanding of El Niño and La Niña, it is clear that they affect fire trends, as they both affect the leading predictor of fire, precipitation. Below, you can see our spotlight on natural fires in California, Texas, and Idaho, as these states have some of the most fires in the US and have differing effects of El Niño and La Niña.We limited these graphs to natural fires as global meteorological trends will primarily impact on natural fires. 
 
 
 ```{r, echo = FALSE, fig.align = 'center'}
-idatexnatural <- FiresClean %>%
-  filter(state %in% c("ID", "TX")) %>%
+# El Niño and La Niña Events 
+
+## data cleaning
+
+calinatural <- FiresClean %>%
+  filter(state %in% c("CA")) %>%
   filter(causeCat == "Natural Causes")
+
+texnatural <- FiresClean %>%
+  filter(state %in% c("TX")) %>%
+  filter(causeCat == "Natural Causes")
+
+idanatural <- FiresClean %>%
+  filter(state %in% c("ID")) %>%
+  filter(causeCat == "Natural Causes")
+
+## plotting
+
 
 LaNina2010 <- data.frame(xstart = as.POSIXct('2010-05-01'), xend = as.POSIXct('2012-03-01'))
 LaNina2008 <- data.frame(xstart = as.POSIXct('2008-10-01'), xend = as.POSIXct('2009-02-01'))
@@ -492,6 +539,8 @@ ElNino2006 <- data.frame(xstart = as.POSIXct('2006-08-01'), xend = as.POSIXct('2
 ElNino2009 <- data.frame(xstart = as.POSIXct('2009-06-01'), xend = as.POSIXct('2010-02-01'))
 ElNino2014 <- data.frame(xstart = as.POSIXct('2014-09-01'), xend = as.POSIXct('2015-12-31'))
 
+### California
+
 ggplot() + 
   geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'blue') + 
   geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') +
@@ -504,23 +553,72 @@ ggplot() +
   geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
   geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
   geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') +
-  geom_density(data = idatexnatural, aes(x = as.POSIXct(disc_clean_date), fill = state), alpha = .7, color = 'white') + 
-  scale_fill_manual(name = NULL, values = c('orangered', 'orange'), labels = c("Idaho", "Texas")) +
+  geom_density(data = calinatural, aes(x = as.POSIXct(disc_clean_date)), fill = 'orangered', alpha = .7, color = 'white') + 
   xlim(as.POSIXct('1992-01-01'), as.POSIXct('2015-12-31')) + 
-  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in Idaho and Texas with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in pink. The La Niña event starting\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014 with darker pink.', caption = 'El Niño and La Niña dates sourced from https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php.') + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in California with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in pink. The La Niña event starting in\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014 with darker pink.', caption = 'El Niño and La Niña dates sourced from https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php.') + 
   theme_minimal() + 
   theme(legend.position = "top") 
 ```
 
-As shown on the graph, the three low-level fire density spikes in Idaho correspond to La Niña events. However, interesting the 2010-2012 event did not correspond to a larger spike in fires, despite being more intense. This result is also interesting because La Niña causes increased precipitation in Idaho, not decreased. We would expect to see decreased precipitation with spikes in fires. However this could be because the increased rainfall would allow undergrowth to thrive, which would then heighten fire risk when the rains stopped and the plants were more dried out. 
+As shown in this graph for California, wildfires stayed largely consistent except for a spike around 2008. There were both El Niño and La Niña events leading up to this spike, but none of them were drawn out or particularly severe. The lack of correlation between these events and changes in fires in California could be because northern and southern California often get opposite effects from them. Therefore, the possible effects could have been cancelled out. However, at the end of our time period, natural fires in California are dropping with an intense El Niño event, possibly because of increased precipitation, but there are many other possibilities given the lack of noticible effect previously. 
 
-In Texas, the three large spikes in the late 2000s and early 2010s also all correspond with La Niña events. Even the small spike in the late 1990s corresponds with a La Niña event. However in Texas, the spikes generally occur during the event, as opposed to after the event in Idaho. This is most likely because La Niña causes decreased precipitation in Texas during the event, and since Texas is already a relatively dry state, the decrease in precipitation increases fire risk faster. 
 
-Finally, the strong El Niño event starting in 2014 corresponds to sharp drops in natural fires in both states. In Texas, El Niño causes increased precipitation, which would understandably correspond with a drop in fires and such a sharp drop was mostly likely due to the increased intensity and length of the event. However in Idaho, El Niño corresponds to less precipitation. The drop in fires corresponds to a predictible drop after a spike, however the drop seems to continue further than expected given lower precipitation. However, since this event spans the end of our study, it is difficult to make any definitive statements. 
+```{r}
+### Texas
 
+ggplot() + 
+  geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'blue') + 
+  geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') +
+  geom_rect(data = LaNina2005, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1998, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1995, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = ElNino1997, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') + 
+  geom_rect(data = ElNino2002, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') + 
+  geom_rect(data = ElNino2004, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') +
+  geom_density(data = texnatural, aes(x = as.POSIXct(disc_clean_date)), fill = 'orange', alpha = .7, color = 'white') + 
+  xlim(as.POSIXct('1992-01-01'), as.POSIXct('2015-12-31')) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in Texas with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in pink. The La Niña event starting in\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014 with darker pink.', caption = 'El Niño and La Niña dates sourced from https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php.') + 
+  theme_minimal() + 
+  theme(legend.position = "top") 
+```
+
+
+In Texas, the three large spikes in the late 2000s and early 2010s also all correspond with La Niña events. Even the small spike in the 1996 corresponds with a La Niña event. However in Texas, the spikes generally occur during the event, as opposed to after the event in Idaho. This is most likely because La Niña causes decreased precipitation in Texas during the event, and since Texas is already a relatively dry state, the decrease in precipitation increases fire risk faster.
+
+```{r, echo = FALSE, fig.align = 'center'}
+### Idaho
+
+ggplot() + 
+  geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'blue') + 
+  geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') +
+  geom_rect(data = LaNina2005, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1998, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1995, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = ElNino1997, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') + 
+  geom_rect(data = ElNino2002, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') + 
+  geom_rect(data = ElNino2004, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') +
+  geom_density(data = idanatural, aes(x = as.POSIXct(disc_clean_date)), fill = "darkorange2", alpha = .7, color = 'white') + 
+  xlim(as.POSIXct('1992-01-01'), as.POSIXct('2015-12-31')) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in Idaho with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in pink. The La Niña event starting in\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014 with darker pink.', caption = 'El Niño and La Niña dates sourced from https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php.') + 
+  theme_minimal() + 
+  theme(legend.position = "top") 
+```
+
+
+As shown on this third graph, the three low-level fire density spikes in Idaho correspond to La Niña events. However, the 2010-2012 event did not correspond to a larger spike in fires, despite being more intense. This result is also interesting because La Niña causes increased precipitation in Idaho, not decreased. We would expect to see decreased precipitation with spikes in fires. However this could be because the increased rainfall would allow undergrowth to thrive, which would then heighten fire risk when the rains stopped and the plants were more dried out. 
+
+In conclusion, the strong El Niño event starting in 2014 corresponds to sharp drops in natural fires in all three states. In Texas, El Niño causes increased precipitation, which would understandably correspond with a drop in fires and such a sharp drop was mostly likely due to the increased intensity and length of the event. However in Idaho, El Niño corresponds to less precipitation. The drop in fires corresponds to a predictable drop after a spike, but the drop seems to continue further than expected given lower precipitation. Ultimately since this event spans the end of our study, it is difficult to make any definitive statements. 
 
 
 ### Code Appendix
 
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 
+```
 
