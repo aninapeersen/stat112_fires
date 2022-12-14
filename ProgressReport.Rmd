@@ -382,7 +382,8 @@ For most fires in the dataset, there is data on the temperature, wind speed, hum
 
 #### By Fire Size Class
 
-As shown in the faceted density plot below, fires are generally cyclical. Spikes occur approximately every 5 years, regardless of size classification.
+As shown in the faceted density plot below, fires are generally cyclical. The same spikes seen in the entire data set shown above are also present when faceted by size classification. 
+
 
 ```{r, echo = FALSE, fig.align='center'}
 # density of fires by fire size classification over entire time period
@@ -411,7 +412,7 @@ ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) +
   theme(legend.position = 'none')
 ```
 
-The distribution of fires over our entire study shows that fires are cyclical approximately every 5 years. This would presumably correspond to yearly patterns in drought and heat as well was natural regrowth and revival. This information is useful in predicting the fire risk for a year based on fires from the previous year. Furthermore, when aggregated across the data set to the day of the year, we see that smaller fires spike in the spring, larger fires spike in the late summer and early fall, and intermediate fires have dual spikes in both. This is also useful for determining fire risk within a year. 
+The cyclical nature of fires presumably corresponds to yearly patterns in drought and heat as well was natural regrowth and revival. This information is useful in predicting the fire risk for a year based on fires from the previous year. Furthermore, when aggregated across the data set to the day of the year, we see that smaller fires spike in the spring, larger fires spike in the late summer and early fall, and intermediate fires have dual spikes in both. This is also useful for determining fire risk within a year. 
 
 
 #### By Cause of Fire
