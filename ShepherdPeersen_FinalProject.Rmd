@@ -1,0 +1,625 @@
+---
+title: "Modeling Wildfires"
+author: "Margaret Shepherd, Anina Peersen"
+date: 'December 14, 2022'
+output: 
+  bookdown::html_document2:
+    split_by: none
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      toc_collapsed: true
+    number_sections: false
+---
+
+<style>
+body {
+text-align: justify}
+</style> 
+
+```{r setup, include=FALSE}
+# reading in libraries
+
+knitr::opts_chunk$set(echo = FALSE)
+
+Fires = read.csv("FW_Veg_Rem_Combined.csv")
+library(ggplot2)
+library(tidyverse)
+library(maps)
+library(ggmap)
+library(ggthemes)
+library(usdata)
+library(lubridate)
+library(stringr)
+library(usmap)
+library(RColorBrewer)
+```
+
+```{r, echo = FALSE}
+# data cleaning
+
+FiresClean <- Fires %>%
+  mutate(discovery_month = fct_relevel(discovery_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
+         disc_pre_month = fct_relevel(disc_pre_month, c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')), 
+         days_to_containment =  str_remove(putout_time, "\\ .*")) %>%
+  mutate(fire_size_class = factor(fire_size_class), 
+         stat_cause_descr = factor(stat_cause_descr), 
+         state = factor(state), 
+         vegCat = case_when(Vegetation %in% c(1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22) ~ 'forest', 
+                            Vegetation %in% c(24, 25, 26, 27) ~ 'agricultural', 
+                            Vegetation == 28 ~ 'urban', 
+                            Vegetation == 23 ~ 'water', 
+                            Vegetation == 13 ~ 'tundra', 
+                            Vegetation %in% c(14, 15) ~ 'desert', 
+                            Vegetation %in% c(9, 10) ~ 'grassland',
+                            Vegetation %in% c(11, 12) ~ 'shrubland', 
+                            Vegetation == 8 ~ 'savanna', 
+                            Vegetation == 0 ~ 'unknown'), 
+         forestType = case_when(Vegetation %in% c(2, 5, 7, 17, 20, 22) ~ 'deciduous', 
+                                Vegetation %in% c(1, 3, 4, 6, 16, 18, 19, 21) ~ 'evergreen'), 
+         forestLeafType = case_when(Vegetation %in% c(1, 2, 3, 5, 16, 17, 18, 20) ~ 'broadleaf', 
+                                    Vegetation %in% c(4, 6, 7, 19, 21, 22) ~ 'needleleaf'), 
+         causeCat = case_when(stat_cause_descr %in% c('Arson') ~ 'Intentional Human Action', 
+                              stat_cause_descr %in% c('Campfire', 'Children', 'Equipment Use', 'Fireworks', 'Smoking') ~ 'Unintentional Human Action', 
+                              stat_cause_descr %in% c('Powerline', 'Railroad', 'Structure') ~ 'Infrastructure', 
+                              stat_cause_descr %in% c('Lightning', 'Debris Burning') ~ 'Natural Causes', 
+                              stat_cause_descr %in% c('Miscellaneous', 'Missing/Undefined') ~ 'Other'))
+
+FiresClean$disc_clean_date <- as_date(FiresClean$disc_clean_date, format = '%m/%d/%Y')
+FiresClean$cont_clean_date <- as_date(FiresClean$cont_clean_date, format = '%m/%d/%Y')
+FiresClean$disc_date_pre <- as_date(FiresClean$disc_date_pre, format = '%m/%d/%Y')
+FiresClean$disc_date_final <- as_date(FiresClean$disc_date_final, format = '%m/%d/%Y %h:%M')
+FiresClean$cont_date_final <- as_date(FiresClean$cont_date_final, format = '%m/%d/%Y %h:%M')
+```
+
+
+```{r, echo = FALSE, include = FALSE}
+# creating stamen maps
+
+continentalUS <- get_stamenmap(
+  bbox = c(left = -126.47, bottom = 24.21, right = -65.74, top = 49.72),
+  maptype = "terrain",
+  zoom = 4)
+
+Alaska <- get_stamenmap(
+  bbox = c(left = -189.23, bottom = 50.4, right = -129.38, top = 71.52),
+  maptype = "terrain",
+  zoom = 5)
+
+Hawaii <- get_stamenmap(
+  bbox = c(left = -160, bottom = 18.15, right = -154, top = 22.6),
+  maptype = "terrain",
+  zoom = 7)
+
+PuertoRico <- get_stamenmap(
+  bbox = c(left = -67.7, bottom = 17.17, right = -65, top = 19.14),
+  maptype = "terrain",
+  zoom = 8)
+```
+
+### Introduction
+
+Wildfires seem to be unpredictable and volatile, often causing immense destruction very quickly. However, these fires also have some very understandable patterns involving human action and weather cycles. Therefore, we decided to model these patterns and highlight the most interesting patterns. Furthermore, we were interested in what factors wildfires have in common and how those factors may be used to predict wildfires. We analyzed the data using both a spatial and temporal analysis of fires. 
+
+#### Our Data
+
+All following analysis comes from a random subset of all fires that happened in the United States from 1992 to 2015, which can be found at https://www.kaggle.com/code/kerneler/starter-u-s-wildfire-data-7e9ea061-a/data?select=Wildfire_att_description.txt. This subset includes over 55,000 fires all originating from a conglomeration over 1.8 millions fires reported by federal, state, and local fire organizations (full data set here: https://www.kaggle.com/datasets/rtatman/188-million-us-wildfires).
+  
+The primary variables used in this data set are fire size classification, a categorical representation of size with 7 levels labeled A through G, although no A fires (less than 1/4 acre) appear in this data set; fire magnitude, which is a scaled representation of overall fire size; fire cause categorized into infrastructure, natural causes, unintentional human action, intentional human action, and "other"; vegetation type in the area of the fire; date the fire was discovered; and humidity, temperature, precipitation, and wind measurements in the area preceding the start of a fire. 
+
+
+### Spatial Analysis
+
+#### Fires in the United States
+
+```{r, echo = FALSE, include = FALSE}
+# further data cleaning
+
+FiresClean_class <- FiresClean %>% 
+  mutate(fire_size_class = fct_recode(fire_size_class, "Class B: 1/4 acre to 10 acres" = "B", 
+                            "Class C: 10 acres to 100 acres" = "C",
+                            "Class D: 100 acres to 300 acres" = "D",
+                            "Class E: 300 acres to 1000 acres" = "E",
+                            "Class F: 1000 acres to 5000 acres" = "F",
+                            "Class G: 5000+ acres" = "G"))
+```
+
+
+```{r, echo = FALSE, fig.align='center'}
+# maps of fire locations with fire size class and magnitude
+
+ggmap(continentalUS) + 
+  geom_point(
+    data = FiresClean_class,
+    aes(x = longitude, y = latitude, color = fire_mag, size = fire_size_class),
+    alpha = .2
+  ) +
+  scale_size_manual(values = c("Class B: 1/4 acre to 10 acres" = 0.1, 
+                               "Class C: 10 acres to 100 acres" = 0.4, 
+                               "Class D: 100 acres to 300 acres" = 0.7, 
+                               "Class E: 300 acres to 1000 acres" = 1, 
+                               "Class F: 1000 acres to 5000 acres" = 1.3, 
+                               "Class G: 5000+ acres" = 1.6)) +
+  theme_map() +
+  theme(legend.position = "right") +
+  scale_color_gradient(low="yellow", high="red")
+
+ggmap(Alaska) +
+  geom_point(
+    data = FiresClean_class,
+    aes(x = longitude, y = latitude, color = fire_mag, size = fire_size_class),
+    alpha = .5
+  ) +
+  scale_size_manual(values = c("Class B: 1/4 acre to 10 acres" = 0.1, 
+                               "Class C: 10 acres to 100 acres" = 0.4, 
+                               "Class D: 100 acres to 300 acres" = 0.7, 
+                               "Class E: 300 acres to 1000 acres" = 1, 
+                               "Class F: 1000 acres to 5000 acres" = 1.3, 
+                               "Class G: 5000+ acres" = 1.6)) +
+  theme_map() +
+  theme(legend.position = "right") +
+  scale_color_gradient(low="yellow", high="red")
+
+ggmap(Hawaii) +
+  geom_point(
+    data = FiresClean_class,
+    aes(x = longitude, y = latitude, color = fire_mag, size = fire_size_class),
+    alpha = .5
+  ) +
+  scale_size_manual(values = c("Class B: 1/4 acre to 10 acres" = 0.1, 
+                               "Class C: 10 acres to 100 acres" = 0.4, 
+                               "Class D: 100 acres to 300 acres" = 0.7, 
+                               "Class E: 300 acres to 1000 acres" = 1, 
+                               "Class F: 1000 acres to 5000 acres" = 1.3, 
+                               "Class G: 5000+ acres" = 1.6)) +
+  theme_map() +
+  theme(legend.position = "right") +
+  scale_color_gradient(low="yellow", high="red")
+
+ggmap(PuertoRico) +
+  geom_point(
+    data = FiresClean_class,
+    aes(x = longitude, y = latitude, color = fire_mag, size = fire_size_class),
+    alpha = .5
+  ) +
+  scale_size_manual(values = c("Class B: 1/4 acre to 10 acres" = 0.1, 
+                               "Class C: 10 acres to 100 acres" = 0.4, 
+                               "Class D: 100 acres to 300 acres" = 0.7, 
+                               "Class E: 300 acres to 1000 acres" = 1, 
+                               "Class F: 1000 acres to 5000 acres" = 1.3, 
+                               "Class G: 5000+ acres" = 1.6)) +
+  theme_map() +
+  theme(legend.position = "right") +
+  scale_color_gradient(low="yellow", high="red")
+```
+
+
+These graphs show the locations of fires in the continental US, Hawaii, Alaska, and Puerto Rico. The color indicates the magnitude of the fire (red corresponds to higher magnitude), and the size indicates the fire size class. The dots are most highly concentrated in the South, with a path carved out by the Mississippi River. However, larger red dots are concentrated in the Southwest and Pacific Northwest, with populations also scattered through Texas and Florida. Alaska also has a high concentration of high magnitude fires. When combating the most dangerous and destructive fires, efforts should be focused on these areas.
+
+This graph may also highlight some differences in fire reporting between states. The outline between New York and Pennsylvania, and New York and New Hampshire, can easily be seen. It may be more plausible that New York is more thorough in its fire reporting, rather than having higher fire density compared to its neighboring states.
+
+Further on in the report we’ll talk about using precipitation to predict wildfires, but it is worth noting that the map of the continental US above looks very similar to maps of the US color-coded by precipitation, reinforcing that declining precipitation is a strong predictor of fires. One such map can be found here: https://gisgeography.com/us-precipitation-map/. 
+
+
+
+```{r, echo = FALSE, fig.align='center'}
+
+# most common cause of fire by state
+
+FiresCleanState <- FiresClean %>% 
+  group_by(state, causeCat) %>% 
+  summarize(num_by_cause = n())
+
+FiresCleanGroup <- FiresCleanState %>% 
+  group_by(state) %>% 
+  filter(num_by_cause == max(num_by_cause)) # need to deal with MA, DE
+
+FiresCleanGroup <- FiresCleanGroup %>%
+  ungroup() %>% 
+  filter(!state %in% c('DE', 'MA')) %>% # takes out DE and MA
+  add_row(state = "DE", # re-adds DE
+          causeCat = "Intentional Human Action, Unintentional Human Action, Other", 
+          num_by_cause = 3) %>%
+  add_row(state = "MA", # re-adds MA
+          causeCat = "Unintentional Human Action, Other", 
+          num_by_cause = 24) 
+  
+plot_usmap(data = FiresCleanGroup, values = "causeCat", color = "black") +
+  scale_fill_manual(values = c("#1b6c6b","green", "#1ccbd1", "#bcdfc6", "#e8f7eb"),
+                    # https://huemint.com/gradient-5/ #00a7a0
+                    breaks = c("Natural Causes", 
+                               "Other", 
+                               "Intentional Human Action", 
+                               "Unintentional Human Action, Other",
+                               "Intentional Human Action, Unintentional Human Action, Other"),
+                    labels = c("Natural Causes: lightning, debris burning", 
+                               "Other: miscellaneous, missing/undefined", 
+                               "Intentional Human Action: arson", 
+                               "Tie: Unintentional Human Action, Other (MA)",
+                               "Tie: Intentional Human Action, Unintentional Human Action, Other (DE)"),
+                    name = "Cause of Wildfire") +
+  theme(legend.position = "right") +
+  labs(title = "Most Common Cause of Wildfire by State", 
+       caption = "Unintentional Human Action consists of campfires, children, equipment use, \n fireworks, and smoking.")
+```
+
+For most states in the US, the most common cause of wildfires is natural causes. The dataset originally listed fires as being caused by one of 13 causes, but in order to visualize patterns more effectively, we grouped those 13 causes into 5 categories. Natural causes encompass lighting and debris burning. A smaller group of states has “other” as the leading cause, and four states list intentional human action (arson) as the most common cause of wildfires. The “other” category holds miscellaneous causes and missing/undefined causes, so we cannot tease out any more information about the cause of those fires. Given the majority of fires with natural causes, it seems that in most places we can only control our preparation for and response to wildfires, not whether or not they occur in the first place. However, this graph pinpoints states where wildfire records are unclear or underutilized, as well as states where the most effective firefighting strategy is tied to crime reduction.
+
+#### Surrounding Vegetation
+
+Large fires are grouped in certain vegetation types.
+
+```{r, echo = FALSE, fig.align='center'}
+# vegetation and fire size class bar plots
+
+FiresCleanVeg <- FiresClean %>% 
+  group_by(vegCat) %>% 
+  summarize(num = n())
+
+ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
+  geom_bar(position = 'stack') +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Fires',
+       title = 'Number of Fires by Surrounding Vegetation and Fire Size Classification', 
+       fill = 'Fire Size\nClassification') + 
+  theme_minimal()
+
+ggplot(FiresClean, aes(x = vegCat, fill = fire_size_class)) +
+  geom_bar(position = 'fill') +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Fires',
+       title = 'Proportion of Fires Size Classification by Surrounding Vegetation', 
+       fill = 'Fire Size\nClassification') + 
+  theme_minimal()
+```
+
+The numerical bar chart shows the number of fires in the dataset, grouped by the fire size class (B through G, smallest to largest) and the type of surrounding vegetation. The proportional bar chart shows the proportion of fires with the same grouping. Shrubland has a clear majority of fires and grassland has a clear minority, but those are not necessarily the most or least dangerous vegetations respectively. By looking at the proportional bar chart, we can see that grassland has the highest proportion of large fires (defined for the purposes of this study as class E, F, and G fires), followed by unknown vegetation and desert.
+
+
+### Temporal Analysis
+
+As shown in the plot below showing all fires in our dataset, fires are generally cyclical with spikes every 4-6 years. This cycle generally corresponds to natural cycles in precipitation levels, temperature, natural regrwoth and recovery, as well as global cycles such as El Niño and La Niña events.  
+
+```{r, echo = FALSE, fig.align='center'}
+# density of fires over time, all states and full time period
+
+ggplot(FiresClean, aes(x = disc_clean_date)) + 
+  geom_density(fill = 'orangered', color = NA, alpha = .7) + 
+  labs(x = "Date of Fire Discovery", y = "Comparative Density", title = "Density of Fires, 1992-2015") + 
+  theme_minimal() 
+```
+
+
+#### Weather Immediately Before a Fire
+
+```{r, echo = FALSE, include = FALSE}
+# normalized graph of weather immediately before a fire
+
+## data cleaning
+
+Fires_temp <- FiresClean %>% 
+  filter(weather_file != 'File Not Found') %>% 
+  filter(Temp_pre_30 != 0) %>% 
+  filter(Temp_pre_15 != 0) %>%
+  filter(Temp_pre_7 != 0) %>%
+  filter(Temp_cont != 0) 
+
+Fires_wind <- FiresClean %>% 
+  filter(weather_file != 'File Not Found') %>%
+  filter(Wind_pre_30 != 0) %>% 
+  filter(Wind_pre_15 != 0) %>%
+  filter(Wind_pre_7 != 0) %>%
+  filter(Wind_cont != 0)
+  
+Fires_hum <- FiresClean %>% 
+  filter(weather_file != 'File Not Found') %>%
+  filter(Hum_pre_30 != 0) %>% 
+  filter(Hum_pre_15 != 0) %>%
+  filter(Hum_pre_7 != 0) %>%
+  filter(Hum_cont != 0)
+
+Fires_prec <- FiresClean %>% 
+  filter(weather_file != 'File Not Found') %>%
+  filter(Prec_pre_30 != 0) %>% 
+  filter(Prec_pre_15 != 0) %>%
+  filter(Prec_pre_7 != 0) %>%
+  filter(Prec_cont != 0)
+
+## normalizing
+
+(avgtemp30 = mean(Fires_temp$Temp_pre_30))
+(avgtemp15 = mean(Fires_temp$Temp_pre_15))
+(avgtemp7 = mean(Fires_temp$Temp_pre_7))
+(avgtempcont = mean(Fires_temp$Temp_cont))
+
+(avgwind30 = mean(Fires_wind$Wind_pre_30))
+(avgwind15 = mean(Fires_wind$Wind_pre_15))
+(avgwind7 = mean(Fires_wind$Wind_pre_7))
+(avgwindcont = mean(Fires_wind$Wind_cont))
+
+(avghum30 = mean(Fires_hum$Hum_pre_30))
+(avghum15 = mean(Fires_hum$Hum_pre_15))
+(avghum7 = mean(Fires_hum$Hum_pre_7))
+(avghumcont = mean(Fires_hum$Hum_cont))
+
+(avgprec30 = mean(Fires_prec$Prec_pre_30))
+(avgprec15 = mean(Fires_prec$Prec_pre_15))
+(avgprec7 = mean(Fires_prec$Prec_pre_7))
+(avgpreccont = mean(Fires_prec$Prec_cont))
+
+days_before <- c(30, 15, 7, 0)
+temp <- c(avgtemp30, avgtemp15, avgtemp7, avgtempcont)
+wind <- c(avgwind30, avgwind15, avgwind7, avgwindcont)
+hum <- c(avghum30, avghum15, avghum7, avghumcont)
+prec <- c(avgprec30, avgprec15, avgprec7, avgpreccont)
+avg_weather <- data.frame(days_before, temp, wind, hum, prec)
+```
+
+
+```{r, echo = FALSE, fig.align='center'}
+## plotting
+
+ggplot(data = avg_weather, aes(x = days_before)) +
+  geom_point(aes(y = temp/max(temp), color = "Temperature")) +
+  geom_point(aes(y = wind/max(wind), color = "Wind")) +
+  geom_point(aes(y = hum/max(hum), color = "Humidity")) +
+  geom_point(aes(y = prec/max(prec), color = "Precipitation")) +
+  geom_line(aes(y = temp/max(temp), color = "Temperature")) +
+  geom_line(aes(y = wind/max(wind), color = "Wind")) +
+  geom_line(aes(y = hum/max(hum), color = "Humidity")) +
+  geom_line(aes(y = prec/max(prec), color = "Precipitation")) + 
+  xlim(30, 0) +
+  labs(x = 'Number of Days Before a Wildfire',
+       y = 'Normalized Average Weather at Wildfire Location',
+       title = 'Average Temperature, Wind Speed, Humidity, and Precipitation Before a Wildfire \n Wildfires in the US, 1992-2015',
+       color = "Weather") +
+  scale_color_manual(values=c("purple", "blue", "red", "orange")) + 
+  theme_minimal()
+```
+
+For most fires in the dataset, there is data on the temperature, wind speed, humidity, and precipitation at the location of the fire at certain intervals leading up to the fire: 30 days before, 15 days before, 7 days before, and the day of containment. This plot was made by removing rows for which no weather data was available, averaging each weather phenomena at each time interval (i.e, calculating the average temperature 7 days before a fire), and normalizing each weather phenomena by the highest value in order to display the change in the average weather. The limitation to this graph is that it contains data from all 50 US states and Puerto Rico, which covers a wide variety of climates. Overall, precipitation shows by far the largest change leading up a fire, making it the most potent predictor. Humidity and wind also decrease leading up to a fire while temperature increases. An observed combination of these factors can help increase awareness of, and preparation for, high fire risk.
+
+
+#### By Fire Size Class
+
+As shown previously, fires are generally cyclical. The same cycle is present when faceting by size classification, although D and E classifications have slightly different cycles. These differences are effected by fire cause, which will be explored later.  
+
+
+```{r, echo = FALSE, fig.align='center'}
+# density of fires by fire size classification over entire time period
+
+ggplot(FiresClean, aes(x = disc_clean_date, fill = fire_size_class)) + 
+  geom_density(alpha = .6, color = NA) + 
+  facet_wrap(~ fire_size_class) + 
+  scale_fill_manual(values = c('orange', 'darkorange', 'darkorange2', 'orangered', 'red', 'brown')) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = "Fire Density by Size Classification, 1992-2015") +
+  theme_minimal() + 
+  theme(legend.position = 'none')
+```
+
+Furthermore, when aggregated by day, small fires spike in the spring and large fires spike in the late summer. Intermediate fires spike in both the spring and late summer.
+
+```{r, echo = FALSE, fig.align='center'}
+# density of fires aggregated by day
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = fire_size_class)) + 
+  geom_density(alpha = .6, color = NA) + 
+  facet_wrap(~ fire_size_class) + 
+  scale_fill_manual(values = c('orange', 'darkorange', 'darkorange2', 'orangered', 'red', 'brown')) + 
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = "Fire Density by Size Classification, Aggregated by Day") + 
+  theme_minimal() + 
+  theme(legend.position = 'none')
+```
+
+The cyclical nature of fires presumably corresponds to yearly patterns in drought and heat as well was natural regrowth and revival. This information is useful in predicting the fire risk for a year based on fires from the previous year. Furthermore, when aggregated across the data set to the day of the year, we see that smaller fires spike in the spring, larger fires spike in the late summer and early fall, and intermediate fires have dual spikes in both. This is also useful for determining fire risk within a year. 
+
+
+#### By Cause of Fire
+
+To look at the temporal distribution of fire by cause, we made the below density plot of cause over the entire study range. The most important take-away is again the cyclical nature of the fires, most noticeable in fires caused by either natural causes or unintentional human actions. Infrastructure- and intentionally-caused fires have much less noticeable patterns. Infrastructure fires remained fairly constant except the large drop from 2000-2005. After this drop, fire density increased fairly steadily, reaching pre-2000 levels around 2011, but subsequently dropped even lower than previously. Fires caused by intentional human action spiked around 2000 and had a second smaller spike around 2008. We are currently unsure why these spikes may have occurred, but are investigating further. Fires with "other" causes had a large spike around 2006 and a second spike around 2011. We are also unsure of causes for this spike, but will most likely not be able to find possible causes as the causes of these fires were largely not included in our dataset. This spike also corresponds to the change in cycles in size classifications D and E noted above. 
+
+```{r, echo = FALSE, fig.align='center'}
+# density of fires over entire time period by fire cause
+
+ggplot(FiresClean, aes(x = disc_clean_date, fill = causeCat)) + 
+  geom_density(alpha = .6, color = NA) + 
+  facet_wrap(~ causeCat) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', fill = 'Fire Cause', title = "Fire Density by Cause, 1992-2015") +
+  theme_minimal() + 
+  theme(legend.position = 'none') 
+```
+
+
+When the fire density is aggregated across our time frame by day, we see infrastructure- and intentionally-set fires, as well as those with "other" causes, spike in the spring. Fires started by natural causes have two spikes: in the spring and the late summer. This dual spike most likely corresponds to the different spikes for fire size as shown previously: lots of small fires would cause a spike in the spring while larger fires would cause a spike in the late summer and early fall. Unintentional human action caused fires spike in the spring and again in the summer, with the latter spike most likely caused by fireworks on the 4th of July. 
+
+```{r, echo = FALSE, fig.align='center'}
+# density of fires by fire cause, aggregated by day
+
+ggplot(FiresClean, aes(x = yday(disc_clean_date), fill = causeCat)) +
+  geom_density(alpha = .6, color = NA) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Fire Density by Cause, Aggregated by Day') +
+  facet_wrap(~ causeCat) + 
+  scale_x_continuous(breaks = c(1, 60, 121, 182, 244, 305), labels = c('Jan', 'Mar', 'May', 'Jul', 'Sept', 'Nov')) +
+  theme_minimal() + 
+  theme(legend.position = 'none')
+```
+
+These density plots in and of themselves lend important insights into fire prevalence. However, the most important information for fire-prediction comes from combining the information here with that shown in the density by cause plots. 
+
+
+### Spotlight on California, Texas, and Idaho
+
+In our investigation, we quickly decided to focus on specific states to dig further into causes and possible ideas at prevention. We decided to focus on California, Idaho, and Texas as they have a high number of large fires. For this narrowed exploration, we primarily looked at vegetation at locations of fires and global weather patterns. 
+
+
+#### Surrounding Vegetation and Fire Cause
+
+```{r, echo = FALSE, fig.align='center'}
+### EDA for CA large fires ###
+LargeFires_CA <- FiresClean %>%
+  filter(state == "CA") %>% 
+  filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G")
+
+ggplot(LargeFires_CA, aes(x = vegCat, fill = causeCat)) +
+  geom_bar(position = 'stack') +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Fires',
+       title = 'Number of Large Wildfires in CA by Surrounding Vegetation and Fire Cause') +
+  theme_minimal()
+
+### EDA for ID large fires ###
+LargeFires_ID <- FiresClean %>%
+  filter(state == "ID") %>% 
+  filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G")
+
+ggplot(LargeFires_ID, aes(x = vegCat, fill = causeCat)) +
+  geom_bar(position = 'stack') +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Fires',
+       title = 'Number of Large Wildfires in ID by Surrounding Vegetation and Fire Cause') +
+  theme_minimal()
+
+### EDA for TX large fires ###
+LargeFires_TX <- FiresClean %>%
+  filter(state == "TX") %>% 
+  filter(fire_size_class == "E" | fire_size_class == "F" | fire_size_class == "G")
+
+ggplot(LargeFires_TX, aes(x = vegCat, fill = causeCat)) +
+  geom_bar(position = 'stack') +
+  labs(x = 'Surrounding Vegetation',
+       y = 'Number of Fires',
+       title = 'Number of Large Wildfires in TX by Surrounding Vegetation and Fire Cause') +
+  theme_minimal()
+
+
+```
+
+
+The above histograms only include data for fire classes E, F, and G (300 acres or above) in order to isolate the largest and most destructive fires. Just like we grouped fire cause into fewer categories in order to see trends more easily, we have also grouped the surrounding vegetation variable into five categories from its original 28 categories. After looking at histograms for large fires based on surrounding vegetation and fire cause for different states, we saw a wide variety of results. We chose to display the results for California, Idaho, and Texas in order to demonstrate the finding that the best practices for fire reduction will vary by state. Additionally, the most effective spatial analysis will take place at the state or regional level, not the nationwide level. We chose California, Idaho, and Texas because all three are in the top 10 US states with the most large fires. The difference in these three graphs is seen in the varying numbers of fires in each vegetation category and each cause category. For example, in California, there are a lot of naturally-caused fires in the desert and a lot of “other” caused fires in the forest, followed by a mix in unknown vegetation. In Idaho, the most common cause of fire overall is natural causes, and the most common vegetation is grassland. In Texas, we see that shrubland is the most common vegetation, with a mix of natural and “other” causes. This shows that a homogeneous nationwide firefighting strategy will not be the best practice for everyone.
+
+
+
+#### La Niña and El Niño Events
+
+Two global weather patterns with effects on fire likelihood are El Niño and La Niña. They are two sides of the same coin: El Niño is the warm counterpart and La Niña the cold. Overall, El Niño starts with above average ocean surface temperatures in the central and eastern Pacific Ocean. Globally, El Niño causes the low-level trade winds that blow east to west along the equator weaken or even blow the opposite direction. This has massive implications for global weather trends. For instance, there is reduced rainfall over Southeast and South Asia, increased rainfall - and subsequently increased tropical storm formation - in the greater Pacific, and more. In the US, El Niño increases precipitation over the Gulf Coast and decreases precipitation in Hawaii, the Ohio Valley, the Pacific Northwest, and the Rocky Mountains. On the other hand, La Niña is the opposite: it starts with below average ocean surface temperatures in the central and eastern Pacific which leads to heavy rains over Southeast Asia and Southern Africa, while Northwest Africa will be drier than usual. In the US, La Niña increases precipitation in the Northern Midwest, the northern Rocky Mountains, the Pacific Northwest, and northern California. Simultaneously, precipitation decreases across the entire southern US, from California to Florida. Both of these weather patterns happen approximately every 2-7 years and their effects can last anywhere from 3 months to 2 years. 
+
+Given this basic understanding of El Niño and La Niña, it is clear that they affect fire trends, as they both affect the leading predictor of fire, precipitation. Below, you can see our spotlight on natural fires in California, Texas, and Idaho, as these states have some of the most fires in the US and have differing effects of El Niño and La Niña. We limited these graphs to natural fires as global meteorological trends will primarily impact on natural fires. 
+
+
+```{r, echo = FALSE, fig.align = 'center'}
+# El Niño and La Niña Events 
+
+## data cleaning
+
+calinatural <- FiresClean %>%
+  filter(state %in% c("CA")) %>%
+  filter(causeCat == "Natural Causes")
+
+texnatural <- FiresClean %>%
+  filter(state %in% c("TX")) %>%
+  filter(causeCat == "Natural Causes")
+
+idanatural <- FiresClean %>%
+  filter(state %in% c("ID")) %>%
+  filter(causeCat == "Natural Causes")
+
+## plotting
+
+
+LaNina2010 <- data.frame(xstart = as.POSIXct('2010-05-01'), xend = as.POSIXct('2012-03-01'))
+LaNina2008 <- data.frame(xstart = as.POSIXct('2008-10-01'), xend = as.POSIXct('2009-02-01'))
+LaNina2005 <- data.frame(xstart = as.POSIXct('2005-10-01'), xend = as.POSIXct('2006-02-01'))
+LaNina1998 <- data.frame(xstart = as.POSIXct('1998-06-01'), xend = as.POSIXct('2001-01-01'))
+LaNina1995 <- data.frame(xstart = as.POSIXct('1995-07-01'), xend = as.POSIXct('1996-02-01'))
+
+ElNino1997 <- data.frame(xstart = as.POSIXct('1997-04-01'), xend = as.POSIXct('1998-04-01'))
+ElNino2002 <- data.frame(xstart = as.POSIXct('2002-05-01'), xend = as.POSIXct('2003-01-01'))
+ElNino2004 <- data.frame(xstart = as.POSIXct('2004-06-01'), xend = as.POSIXct('2005-01-01'))
+ElNino2006 <- data.frame(xstart = as.POSIXct('2006-08-01'), xend = as.POSIXct('2007-01-01'))
+ElNino2009 <- data.frame(xstart = as.POSIXct('2009-06-01'), xend = as.POSIXct('2010-02-01'))
+ElNino2014 <- data.frame(xstart = as.POSIXct('2014-09-01'), xend = as.POSIXct('2015-12-31'))
+
+### California
+
+ggplot() + 
+  geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'blue') + 
+  geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') +
+  geom_rect(data = LaNina2005, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1998, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1995, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = ElNino1997, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') + 
+  geom_rect(data = ElNino2002, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') + 
+  geom_rect(data = ElNino2004, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') +
+  geom_density(data = calinatural, aes(x = as.POSIXct(disc_clean_date)), fill = 'orangered', alpha = .7, color = 'white') + 
+  xlim(as.POSIXct('1992-01-01'), as.POSIXct('2015-12-31')) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in California with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in pink. The La Niña event starting in\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014 with darker pink.', caption = 'El Niño and La Niña dates sourced from https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php.') + 
+  theme_minimal() + 
+  theme(legend.position = "top") 
+```
+
+As shown in this graph for California, wildfires stayed largely consistent except for a spike around 2008. There were both El Niño and La Niña events leading up to this spike, but none of them were drawn out or particularly severe. The lack of correlation between these events and changes in fires in California could be because northern and southern California often get opposite effects from them. Therefore, the possible effects could have been cancelled out. However, at the end of our time period, natural fires in California are dropping with an intense El Niño event, possibly because of increased precipitation, but there are many other possibilities given the lack of noticeable effect previously. 
+
+
+```{r}
+### Texas
+
+ggplot() + 
+  geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'blue') + 
+  geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') +
+  geom_rect(data = LaNina2005, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1998, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1995, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = ElNino1997, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') + 
+  geom_rect(data = ElNino2002, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') + 
+  geom_rect(data = ElNino2004, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') +
+  geom_density(data = texnatural, aes(x = as.POSIXct(disc_clean_date)), fill = 'orange', alpha = .7, color = 'white') + 
+  xlim(as.POSIXct('1992-01-01'), as.POSIXct('2015-12-31')) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in Texas with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in pink. The La Niña event starting in\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014 with darker pink.', caption = 'El Niño and La Niña dates sourced from https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php.') + 
+  theme_minimal() + 
+  theme(legend.position = "top") 
+```
+
+
+In Texas, the three large spikes in the late 2000s and early 2010s also all correspond with La Niña events. Even the small spike in the 1996 corresponds with a La Niña event. However in Texas, the spikes generally occur during the event, as opposed to after the event in Idaho. This is most likely because La Niña causes decreased precipitation in Texas during the event, and since Texas is already a relatively dry state, the decrease in precipitation increases fire risk faster.
+
+```{r, echo = FALSE, fig.align = 'center'}
+### Idaho
+
+ggplot() + 
+  geom_rect(data = LaNina2010, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'blue') + 
+  geom_rect(data = LaNina2008, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') +
+  geom_rect(data = LaNina2005, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1998, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = LaNina1995, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'blue') + 
+  geom_rect(data = ElNino1997, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') + 
+  geom_rect(data = ElNino2002, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') + 
+  geom_rect(data = ElNino2004, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2006, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2009, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .3, fill = 'deeppink') +
+  geom_rect(data = ElNino2014, aes(xmin = xstart, xmax = xend, ymin = 0, ymax = Inf), alpha = .6, fill = 'deeppink') +
+  geom_density(data = idanatural, aes(x = as.POSIXct(disc_clean_date)), fill = "darkorange2", alpha = .7, color = 'white') + 
+  xlim(as.POSIXct('1992-01-01'), as.POSIXct('2015-12-31')) + 
+  labs(x = 'Date of Fire Discovery', y = 'Comparative Density', title = 'Natural Fires in Idaho with La Niña and El Niño Events, 1992-2015', subtitle = 'La Niña events appear in blue; El Niño events appear in pink. The La Niña event starting in\n2010 was particularly intense and is therefore represented with a darker blue; the same for\nEl Niño events starting in 1997 and 2014 with darker pink.', caption = 'El Niño and La Niña dates sourced from https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php.') + 
+  theme_minimal() + 
+  theme(legend.position = "top") 
+```
+
+
+As shown on this third graph, the three low-level fire density spikes in Idaho correspond to La Niña events. However, the 2010-2012 event did not correspond to a larger spike in fires, despite being more intense. This result is also interesting because La Niña causes increased precipitation in Idaho, not decreased. We would expect to see decreased precipitation with spikes in fires. However this could be because the increased rainfall would allow undergrowth to thrive, which would then heighten fire risk when the rains stopped and the plants were more dried out. 
+
+In conclusion, the strong El Niño event starting in 2014 corresponds to sharp drops in natural fires in all three states. In Texas, El Niño causes increased precipitation, which would understandably correspond with a drop in fires and such a sharp drop was mostly likely due to the increased intensity and length of the event. However in Idaho, El Niño corresponds to less precipitation. The drop in fires corresponds to a predictable drop after a spike, but the drop seems to continue further than expected given lower precipitation. Ultimately since this event spans the end of our study, it is difficult to make any definitive statements. 
+
+
+### Code Appendix
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+
+```
+
